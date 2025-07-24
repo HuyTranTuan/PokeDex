@@ -11,7 +11,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.jetpack.pokedex.data.repository.PokemonRepository
 import com.jetpack.pokedex.data.source.OkHttpApiService
-import com.jetpack.pokedex.pages.PokemonListScreen
+import com.jetpack.pokedex.pages.HomeScreen
 import com.jetpack.pokedex.viewmodel.PokemonViewModel
 import com.jetpack.pokedex.viewmodel.PokemonViewModelFactory
 import kotlinx.coroutines.delay

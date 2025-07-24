@@ -80,7 +80,6 @@ class OkHttpApiService(private val client: OkHttpClient): ApiService {
                                 abilities = emptyList(),
                                 stats = emptyList(),
                                 moves = emptyList(),
-//                                evolutions = emptyList(),
                                 species = "",
                             )
                             pokemonList.add(pokemon)
@@ -145,7 +144,6 @@ class OkHttpApiService(private val client: OkHttpClient): ApiService {
                                 val moves = rootObject.getJSONArray("moves")
                                 val stats = rootObject.getJSONArray("stats")
                                 val species = rootObject.optJSONObject("species").optString("name")
-//                                val evolutions = rootObject.optJSONArray("evolutions")
 
                                 pokemon.img = sprites
                                 for (i in 0 until types.length()){

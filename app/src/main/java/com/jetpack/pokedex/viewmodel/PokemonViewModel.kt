@@ -71,8 +71,12 @@ open class PokemonViewModel(private val repository: IPokemonRepository) : ViewMo
         )
     }
 
-    fun getPokemonDetail(pokemonId: String): Pokemon? {
+    fun getPokemonDetailById(pokemonId: String): Pokemon? {
         return pokemonList.value?.find { it.id == pokemonId }
+    }
+
+    fun getPokemonDetailByName(pokemonName: String): Pokemon? {
+        return pokemonList.value?.find { it.name == pokemonName }
     }
 }
 

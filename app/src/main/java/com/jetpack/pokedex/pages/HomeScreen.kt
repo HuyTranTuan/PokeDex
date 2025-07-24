@@ -21,8 +21,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -40,14 +38,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.jetpack.pokedex.AppDestinations
-import com.jetpack.pokedex.R
 import com.jetpack.pokedex.data.model.Pokemon
 import com.jetpack.pokedex.sidecomponents.ScrollToTopButton
 import com.jetpack.pokedex.ui.theme.*
@@ -60,7 +56,7 @@ import kotlinx.coroutines.launch
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Suppress("UNCHECKED_CAST")
 @Composable
-fun PokemonListScreen(
+fun HomeScreen(
     viewModel: PokemonViewModel,
     navController: NavController
 ) {
@@ -148,8 +144,8 @@ fun PokemonLazyList(
         ){ pokemon ->
             PokemonListItemView(
                 pokemon = pokemon,
-                onPokemonClick = { pokemonId ->
-                    navController.navigate("${AppDestinations.POKEMON_DETAIL_ROUTE}/$pokemonId")
+                onPokemonClick = { pokemonName ->
+                    navController.navigate("${AppDestinations.POKEMON_DETAIL_ROUTE}/$pokemonName")
                 }
             )
         }
@@ -185,7 +181,7 @@ fun PokemonListItemView(pokemon: Pokemon, onPokemonClick: (String) -> Unit, modi
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
-            .clickable { onPokemonClick(pokemon.id) },
+            .clickable { onPokemonClick(pokemon.name) },
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
         ),

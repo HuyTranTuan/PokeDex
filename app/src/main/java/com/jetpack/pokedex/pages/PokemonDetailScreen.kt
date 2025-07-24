@@ -1,7 +1,6 @@
 package com.jetpack.pokedex.pages
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -46,7 +45,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.Color
 import com.jetpack.pokedex.sidecomponents.BackwardButton
 import com.jetpack.pokedex.sidecomponents.ScrollToTopButton
-import com.jetpack.pokedex.ui.theme.Crimson
 import com.jetpack.pokedex.ui.theme.LT100
 import com.jetpack.pokedex.ui.theme.LT150
 import com.jetpack.pokedex.ui.theme.LT300
@@ -58,7 +56,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PokemonDetailScreen(
-    pokemonID: String,
+    pokemonName: String,
     navController: NavController,
     pokemonViewModel: PokemonViewModel
 ) {
@@ -66,11 +64,11 @@ fun PokemonDetailScreen(
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(pokemonID) {
+    LaunchedEffect(pokemonName) {
         isLoading = true
         errorMessage = null
         try {
-            pokemonDetail = pokemonViewModel.getPokemonDetail(pokemonID)
+            pokemonDetail = pokemonViewModel.getPokemonDetailByName(pokemonName)
         } catch (e: Exception) {
             errorMessage = "Failed to load details. Error${e.message}"
         } finally {
@@ -170,12 +168,12 @@ fun PokemonDetailScreen(
                     .width(maxOf(250.dp, 370.dp))
 
             ){
-                Text(text = "Base Stats: ", modifier = Modifier.padding(16.dp))
+                Text(text = "Base Stats: ", modifier = Modifier.padding(top = 16.dp, bottom = 8.dp, start = 16.dp, end = 16.dp))
                 for (stat in pokemonDetail!!.stats){
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 4.dp, horizontal = 16.dp), // vertical spacing between rows
+                            .padding(vertical = 8.dp, horizontal = 16.dp), // vertical spacing between rows
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ){
@@ -205,6 +203,7 @@ fun PokemonDetailScreen(
                         }
                     }
                 }
+                Spacer(modifier = Modifier.height(8.dp))
             }
 
             // Pokemon Abilities

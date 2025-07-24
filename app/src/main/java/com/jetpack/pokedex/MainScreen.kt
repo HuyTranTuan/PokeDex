@@ -1,7 +1,6 @@
 package com.jetpack.pokedex
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -54,20 +53,50 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.jetpack.pokedex.data.model.Pokemon
-import com.jetpack.pokedex.pages.PokemonListScreen
+import com.jetpack.pokedex.pages.GenerationsScreen
+import com.jetpack.pokedex.pages.HomeScreen
+import com.jetpack.pokedex.pages.MovesScreen
 import com.jetpack.pokedex.ui.theme.Crimson
 import com.jetpack.pokedex.viewmodel.PokemonViewModel
 import com.jetpack.pokedex.pages.PokemonDetailScreen
+import com.jetpack.pokedex.pages.TypesScreen
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun MainScreen(viewModel: PokemonViewModel) {
     val pokemonList by viewModel.pokemonList.observeAsState(initial = emptyList())
     val navController = rememberNavController()
+
+    //Navigation bar
+    var selectedIndex by remember { mutableIntStateOf(0) }
+    val items = listOf("Pokemon", "Generations", "Types", "Moves")
+    val selectedIcons = listOf(Icons.Filled.Home, Icons.Filled.Favorite, Icons.Filled.Star, Icons.Filled.Info)
+    val unselectedIcons =
+        listOf(Icons.Outlined.Home, Icons.Outlined.FavoriteBorder, Icons.Outlined.Star, Icons.Outlined.Info)
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
-            NavController()
+            NavigationBar(
+                modifier = Modifier
+                    .semantics { isTraversalGroup = true }
+                    .semantics { traversalIndex = 1f },
+                containerColor = Crimson,
+            ){
+                items.forEachIndexed { index, item ->
+                    NavigationBarItem(
+                        icon = {
+                            Icon(
+                                if (selectedIndex == index) selectedIcons[index] else unselectedIcons[index],
+                                contentDescription = item,
+                                tint = if (selectedIndex == index) Color.Black else Color.LightGray
+                            )
+                        },
+                        label = { Text(item, color = Color.White) },
+                        selected = selectedIndex == index,
+                        onClick = { selectedIndex = index },
+                    )
+                }
+            }
         },
         topBar = {
             TopBarController(pokemonList, navController)
@@ -78,19 +107,19 @@ fun MainScreen(viewModel: PokemonViewModel) {
             startDestination = AppDestinations.POKEMON_LIST_ROUTE
         ) {
             composable(route = AppDestinations.POKEMON_LIST_ROUTE) {
-                PokemonListScreen(viewModel = viewModel, navController = navController)
+                HomeScreen(viewModel = viewModel, navController = navController)
             }
 
             composable(
-                route = "${AppDestinations.POKEMON_DETAIL_ROUTE}/{${AppDestinations.POKEMON_ID_ARG}}",
-                arguments = listOf(navArgument(AppDestinations.POKEMON_ID_ARG) { type =
+                route = "${AppDestinations.POKEMON_DETAIL_ROUTE}/{${AppDestinations.POKEMON_NAME_ARG}}",
+                arguments = listOf(navArgument(AppDestinations.POKEMON_NAME_ARG) { type =
                     NavType.StringType })
             ) { backStackEntry ->
                 // Retrieve the argument
-                val pokemonID = backStackEntry.arguments?.getString(AppDestinations.POKEMON_ID_ARG)
-                if (pokemonID != null) {
+                val pokemonName = backStackEntry.arguments?.getString(AppDestinations.POKEMON_NAME_ARG)
+                if (pokemonName != null) {
                     PokemonDetailScreen(
-                        pokemonID = pokemonID,
+                        pokemonName = pokemonName,
                         navController = navController,
                         pokemonViewModel = viewModel
                     )
@@ -100,6 +129,7 @@ fun MainScreen(viewModel: PokemonViewModel) {
                 }
             }
         }
+        ContentScreen(viewModel, navController, selectedIndex)
     }
 }
 
@@ -139,7 +169,12 @@ fun TopBarController(pokemonList: List<Pokemon>, navController: NavController){
     var query by rememberSaveable { mutableStateOf("") }
     // Search results (replace with your actual search logic)
     var searchResults by remember { mutableStateOf(emptyList<String>()) }
-    val allPossibleItems = pokemonList.map { pokemon -> pokemon.name }
+    val allPossibleItems = pokemonList.map { pokemon ->
+        pokemon.name.replaceFirstChar {
+            if (it.isLowerCase()) it.titlecase()
+            else it.toString()
+        }
+    }
     // Function to perform the search (triggered by onSearch)
     val performSearch = { currentQuery: String ->
         searchResults = if (currentQuery.isBlank()) {
@@ -167,8 +202,8 @@ fun TopBarController(pokemonList: List<Pokemon>, navController: NavController){
         onResultClick = { result ->
             query = result
             searchResults = emptyList()
-            // Handle the selected result here
-            navController.navigate("${AppDestinations.POKEMON_DETAIL_ROUTE}/$query")
+            var currentPokemon = result.lowercase()
+            navController.navigate("${AppDestinations.POKEMON_DETAIL_ROUTE}/${currentPokemon}")
         },
         // --- Optional Customizations ---
         placeholder = { Text("Search Pokémon...") },
@@ -223,7 +258,6 @@ fun CustomizableSearchBar(
 
     Box(
         modifier
-//            .fillMaxSize()
             .background(Crimson)
             .padding(bottom = 16.dp)
     ) {
@@ -273,7 +307,16 @@ fun CustomizableSearchBar(
     }
 }
 
-//@Composable
-//fun ContentScreen(viewModel: PokemonViewModel ,modifier: Modifier = Modifier) {
-////    PokemonListScreen(viewModel, navCont)
-//}
+@Composable
+fun ContentScreen(
+    viewModel: PokemonViewModel,
+    navController: NavController,
+    selectedIndex: Int
+) {
+    when(selectedIndex){
+        0 -> HomeScreen(viewModel = viewModel, navController)
+        1 -> GenerationsScreen()
+        2 -> TypesScreen()
+        3 -> MovesScreen()
+    }
+}
