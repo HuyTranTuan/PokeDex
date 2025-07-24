@@ -6,6 +6,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Point
 import android.os.Build
+import android.util.Log
 import android.view.WindowInsets
 import android.view.WindowManager
 import android.view.WindowMetrics
@@ -145,6 +146,7 @@ fun PokemonLazyList(
             PokemonListItemView(
                 pokemon = pokemon,
                 onPokemonClick = { pokemonName ->
+                    Log.d("Pokemon", "Clicked on $pokemonName")
                     navController.navigate("${AppDestinations.POKEMON_DETAIL_ROUTE}/$pokemonName")
                 }
             )

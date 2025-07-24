@@ -107,7 +107,19 @@ fun MainScreen(viewModel: PokemonViewModel) {
             startDestination = AppDestinations.POKEMON_LIST_ROUTE
         ) {
             composable(route = AppDestinations.POKEMON_LIST_ROUTE) {
-                HomeScreen(viewModel = viewModel, navController = navController)
+                HomeScreen(viewModel, navController)
+            }
+
+            composable(route = AppDestinations.POKEMON_GENERATIONS_ROUTE) {
+                GenerationsScreen()
+            }
+
+            composable(route = AppDestinations.POKEMON_TYPES_ROUTE) {
+                TypesScreen()
+            }
+
+            composable(route = AppDestinations.POKEMON_MOVES_ROUTE) {
+                MovesScreen()
             }
 
             composable(
@@ -129,7 +141,12 @@ fun MainScreen(viewModel: PokemonViewModel) {
                 }
             }
         }
-        ContentScreen(viewModel, navController, selectedIndex)
+        when(selectedIndex){
+            0 -> navController.navigate(AppDestinations.POKEMON_LIST_ROUTE)
+            1 -> navController.navigate(AppDestinations.POKEMON_GENERATIONS_ROUTE)
+            2 -> navController.navigate(AppDestinations.POKEMON_TYPES_ROUTE)
+            3 -> navController.navigate(AppDestinations.POKEMON_MOVES_ROUTE)
+        }
     }
 }
 
