@@ -1,0 +1,26 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.Pokedex" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/white</item>
+    </style>
+
+    <style name="Theme.Pokedex" parent="Base.Theme.Pokedex" />
+
+    <style name="Theme.Pokedex.Fullscreen" parent="Theme.Pokedex">
+        <item name="android:actionBarStyle">@style/Widget.Theme.Pokedex.ActionBar.Fullscreen</item>
+        <item name="android:windowActionBarOverlay">true</item>
+        <item name="android:windowBackground">@null</item>
+    </style>
+
+    <style name="ThemeOverlay.Pokedex.FullscreenContainer" parent="">
+        <item name="fullscreenBackgroundColor">@color/light_blue_600</item>
+        <item name="fullscreenTextColor">@color/light_blue_A200</item>
+    </style>
+
+    <style name="Theme.MySplashScreen" parent="Theme.SplashScreen">
+        <item name="android:windowBackground">@color/black_overlay</item>
+        <item name="android:windowSplashScreenAnimatedIcon" tools:ignore="NewApi">@drawable/logo</item>
+        <item name="postSplashScreenTheme">@style/Theme.Pokedex</item>
+        <item name="windowSplashScreenAnimationDuration">200</item>
+    </style>
+</resources>
