@@ -18,14 +18,19 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 
 @Composable
-fun ScrollToTopButton(goToTop:() -> Unit) {
+fun ScrollToTopButton(goToTop:() -> Unit, isVisibleStart: Boolean = false) {
     Box(modifier = Modifier.fillMaxSize()) {
         FloatingActionButton(
             shape = RoundedCornerShape(50),
             modifier = Modifier
                 .padding(end = 16.dp, bottom = 105.dp)
                 .size(50.dp)
-                .align(Alignment.BottomEnd),
+                .align(if (isVisibleStart == true){
+                        Alignment.BottomStart
+                    } else {
+                        Alignment.BottomEnd
+                    }
+                ),
             onClick = goToTop,
             containerColor = Color.White,
             contentColor = Color.Black

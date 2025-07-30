@@ -53,18 +53,32 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.jetpack.pokedex.data.model.Pokemon
-import com.jetpack.pokedex.pages.GenerationsScreen
-import com.jetpack.pokedex.pages.HomeScreen
-import com.jetpack.pokedex.pages.MovesScreen
+import com.jetpack.pokedex.data.source.OkHttpApiService
+import com.jetpack.pokedex.pages.generations.GenerationDetailScreen
+import com.jetpack.pokedex.pages.generations.GenerationsScreen
+import com.jetpack.pokedex.pages.home.HomeScreen
+import com.jetpack.pokedex.pages.moves.MovesScreen
 import com.jetpack.pokedex.ui.theme.Crimson
-import com.jetpack.pokedex.viewmodel.PokemonViewModel
-import com.jetpack.pokedex.pages.PokemonDetailScreen
-import com.jetpack.pokedex.pages.TypesScreen
+import com.jetpack.pokedex.viewmodel.pokemon.PokemonViewModel
+import com.jetpack.pokedex.pages.home.PokemonDetailScreen
+import com.jetpack.pokedex.pages.moves.MoveDetailScreen
+import com.jetpack.pokedex.pages.region.RegionDetailScreen
+import com.jetpack.pokedex.pages.region.RegionsScreen
+import com.jetpack.pokedex.pages.types.TypeDetailScreen
+import com.jetpack.pokedex.pages.types.TypesScreen
+import com.jetpack.pokedex.viewmodel.generation.GenerationViewModel
+import com.jetpack.pokedex.viewmodel.move.MoveViewModel
+import com.jetpack.pokedex.viewmodel.type.TypeViewModel
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun MainScreen(viewModel: PokemonViewModel) {
-    val pokemonList by viewModel.pokemonList.observeAsState(initial = emptyList())
+fun MainScreen(
+    pokemonViewModel: PokemonViewModel,
+    moveViewModel: MoveViewModel,
+    typeViewModel: TypeViewModel,
+    generationViewModel: GenerationViewModel,
+) {
+    val pokemonList by pokemonViewModel.pokemonList.observeAsState(initial = emptyList())
     val navController = rememberNavController()
 
     //Navigation bar
@@ -107,19 +121,7 @@ fun MainScreen(viewModel: PokemonViewModel) {
             startDestination = AppDestinations.POKEMON_LIST_ROUTE
         ) {
             composable(route = AppDestinations.POKEMON_LIST_ROUTE) {
-                HomeScreen(viewModel, navController)
-            }
-
-            composable(route = AppDestinations.POKEMON_GENERATIONS_ROUTE) {
-                GenerationsScreen()
-            }
-
-            composable(route = AppDestinations.POKEMON_TYPES_ROUTE) {
-                TypesScreen()
-            }
-
-            composable(route = AppDestinations.POKEMON_MOVES_ROUTE) {
-                MovesScreen()
+                HomeScreen(pokemonViewModel, navController)
             }
 
             composable(
@@ -133,49 +135,94 @@ fun MainScreen(viewModel: PokemonViewModel) {
                     PokemonDetailScreen(
                         pokemonName = pokemonName,
                         navController = navController,
-                        pokemonViewModel = viewModel
+                        pokemonViewModel = pokemonViewModel
                     )
                 } else {
                     // Handle error: Pokemon ID not found, maybe navigate back or show error
                     Text("Error: Pokémon not found.")
                 }
             }
+
+            composable(route = AppDestinations.GENERATION_LIST_ROUTE) {
+                GenerationsScreen(generationViewModel, navController)
+            }
+
+            composable(
+                route = "${AppDestinations.GENERATION_DETAIL_ROUTE}/{${AppDestinations.GENERATION_NAME_ARG}}",
+                arguments = listOf(navArgument(AppDestinations.GENERATION_NAME_ARG) { type =
+                    NavType.StringType })
+            ) { backStackEntry ->
+                val generationName = backStackEntry.arguments?.getString(AppDestinations.GENERATION_NAME_ARG)
+                if (generationName != null) {
+                    GenerationDetailScreen(
+                        generationName = generationName,
+                        navController = navController,
+                        generationViewModel = generationViewModel,
+                        pokemonViewModel = pokemonViewModel,
+                        moveViewModel = moveViewModel
+                    )
+                } else {
+                    Text("Error: Generation not found.")
+                }
+            }
+
+            composable(route = AppDestinations.TYPE_LIST_ROUTE) {
+                TypesScreen(typeViewModel, navController)
+            }
+
+            composable(
+                route = "${AppDestinations.TYPE_DETAIL_ROUTE}/{${AppDestinations.TYPE_NAME_ARG}}",
+                arguments = listOf(navArgument(AppDestinations.TYPE_NAME_ARG) { type =
+                    NavType.StringType })
+            ) { backStackEntry ->
+                val typeName = backStackEntry.arguments?.getString(AppDestinations.TYPE_NAME_ARG)
+                if (typeName != null) {
+                    TypeDetailScreen(
+                        typeName = typeName,
+                        navController = navController,
+                        typeViewModel = typeViewModel,
+                        pokemonViewModel = pokemonViewModel
+                    )
+                } else {
+                    Text("Error: Type not found.")
+                }
+            }
+
+            composable(route = AppDestinations.MOVE_LIST_ROUTE) {
+                MovesScreen(moveViewModel, navController)
+            }
+
+            composable(
+                route = "${AppDestinations.MOVE_DETAIL_ROUTE}/{${AppDestinations.MOVE_NAME_ARG}}",
+                arguments = listOf(navArgument(AppDestinations.MOVE_NAME_ARG) { type =
+                    NavType.StringType })
+            ) { backStackEntry ->
+                val moveName = backStackEntry.arguments?.getString(AppDestinations.MOVE_NAME_ARG)
+                if (moveName != null) {
+                    MoveDetailScreen(
+                        moveName = moveName,
+                        navController = navController,
+                        moveViewModel = moveViewModel,
+                        pokemonViewModel = pokemonViewModel
+                    )
+                } else {
+                    Text("Error: Move not found.")
+                }
+            }
+
+            composable(route = AppDestinations.REGION_LIST_ROUTE) {
+                RegionsScreen()
+            }
+
+            composable(route = AppDestinations.REGION_DETAIL_ROUTE) {
+                RegionDetailScreen()
+            }
         }
         when(selectedIndex){
             0 -> navController.navigate(AppDestinations.POKEMON_LIST_ROUTE)
-            1 -> navController.navigate(AppDestinations.POKEMON_GENERATIONS_ROUTE)
-            2 -> navController.navigate(AppDestinations.POKEMON_TYPES_ROUTE)
-            3 -> navController.navigate(AppDestinations.POKEMON_MOVES_ROUTE)
-        }
-    }
-}
-
-@Composable
-fun NavController(){
-    var selectedItem by remember { mutableIntStateOf(0) }
-    val items = listOf("Pokemon", "Generations", "Types", "Moves")
-    val selectedIcons = listOf(Icons.Filled.Home, Icons.Filled.Favorite, Icons.Filled.Star, Icons.Filled.Info)
-    val unselectedIcons =
-        listOf(Icons.Outlined.Home, Icons.Outlined.FavoriteBorder, Icons.Outlined.Star, Icons.Outlined.Info)
-    NavigationBar(
-        modifier = Modifier
-            .semantics { isTraversalGroup = true }
-            .semantics { traversalIndex = 1f },
-        containerColor = Crimson,
-    ){
-        items.forEachIndexed { index, item ->
-            NavigationBarItem(
-                icon = {
-                    Icon(
-                        if (selectedItem == index) selectedIcons[index] else unselectedIcons[index],
-                        contentDescription = item,
-                        tint = if (selectedItem == index) Color.Black else Color.LightGray
-                    )
-                },
-                label = { Text(item, color = Color.White) },
-                selected = selectedItem == index,
-                onClick = { selectedItem = index },
-            )
+            1 -> navController.navigate(AppDestinations.GENERATION_LIST_ROUTE)
+            2 -> navController.navigate(AppDestinations.TYPE_LIST_ROUTE)
+            3 -> navController.navigate(AppDestinations.MOVE_LIST_ROUTE)
         }
     }
 }
@@ -324,16 +371,3 @@ fun CustomizableSearchBar(
     }
 }
 
-@Composable
-fun ContentScreen(
-    viewModel: PokemonViewModel,
-    navController: NavController,
-    selectedIndex: Int
-) {
-    when(selectedIndex){
-        0 -> HomeScreen(viewModel = viewModel, navController)
-        1 -> GenerationsScreen()
-        2 -> TypesScreen()
-        3 -> MovesScreen()
-    }
-}

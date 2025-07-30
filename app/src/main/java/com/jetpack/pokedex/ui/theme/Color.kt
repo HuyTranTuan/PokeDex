@@ -12,6 +12,7 @@ val Pink40 = Color(0xFF7D5260)
 
 val Crimson = Color(0xFFCB092F)
 val LightGrey = Color(0xFFC9C9C9)
+val DarkGrey = Color(0xFF1A1A1A)
 
 //Status bar
 val LT50 = Color(0xFFEF0000)
@@ -40,6 +41,9 @@ val dragon = hexToComposeColor("#6F35FC")
 val dark = hexToComposeColor("#705746")
 val steel = hexToComposeColor("#B7B7CE")
 val fairy = hexToComposeColor("#D685AD")
+val shadow = hexToComposeColor("#130949")
+val stellar = hexToComposeColor("#46647E")
+val unknown = hexToComposeColor("#04b0A7")
 
 fun hexToComposeColor(hexString: String): Color {
     // Remove '#' prefix if present and ensure it's a valid hex string

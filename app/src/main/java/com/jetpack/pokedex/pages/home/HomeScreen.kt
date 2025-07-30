@@ -1,12 +1,11 @@
 @file:Suppress("KotlinConstantConditions", "DEPRECATION")
 
-package com.jetpack.pokedex.pages
+package com.jetpack.pokedex.pages.home
 
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Point
 import android.os.Build
-import android.util.Log
 import android.view.WindowInsets
 import android.view.WindowManager
 import android.view.WindowMetrics
@@ -39,8 +38,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -48,7 +50,7 @@ import com.jetpack.pokedex.AppDestinations
 import com.jetpack.pokedex.data.model.Pokemon
 import com.jetpack.pokedex.sidecomponents.ScrollToTopButton
 import com.jetpack.pokedex.ui.theme.*
-import com.jetpack.pokedex.viewmodel.PokemonViewModel
+import com.jetpack.pokedex.viewmodel.pokemon.PokemonViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
@@ -59,7 +61,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomeScreen(
     viewModel: PokemonViewModel,
-    navController: NavController
+    navController: NavController,
 ) {
     val pokemonList by viewModel.pokemonList.observeAsState(initial = emptyList())
     val isLoading by viewModel.isLoading.observeAsState(initial = false)
@@ -118,10 +120,9 @@ fun PokemonLazyList(
     isLoadingMore: Boolean,
     canLoadMore: Boolean,
     onLoadMore: () -> Unit,
-    navController: NavController
+    navController: NavController,
 ) {
     val state = rememberLazyGridState()
-    //Here we create a condition if the firstVisibleItemIndex is greater than 0
     val showButton by remember {
         derivedStateOf {
             state.firstVisibleItemIndex > 0 || state.firstVisibleItemScrollOffset > 0
@@ -146,7 +147,6 @@ fun PokemonLazyList(
             PokemonListItemView(
                 pokemon = pokemon,
                 onPokemonClick = { pokemonName ->
-                    Log.d("Pokemon", "Clicked on $pokemonName")
                     navController.navigate("${AppDestinations.POKEMON_DETAIL_ROUTE}/$pokemonName")
                 }
             )
@@ -158,7 +158,8 @@ fun PokemonLazyList(
                 coroutineScope.launch {
                     state.animateScrollToItem(index = 0)
                 }
-            }
+            },
+            isVisibleStart = false,
         )
     }
 
@@ -167,10 +168,10 @@ fun PokemonLazyList(
         snapshotFlow { state.layoutInfo.visibleItemsInfo }
             .map { visibleItems ->
                 val lastVisibleItem = visibleItems.lastOrNull()
-                lastVisibleItem != null && lastVisibleItem.index >= pokemonList.size - 5 // Load 5 items before end
+                lastVisibleItem != null && lastVisibleItem.index >= pokemonList.size - 5
             }
             .distinctUntilChanged()
-            .filter { it && canLoadMore && !isLoadingMore } // Only if true, can load more, and not already loading
+            .filter { it && canLoadMore && !isLoadingMore }
             .collect {
                 onLoadMore()
             }
@@ -182,7 +183,6 @@ fun PokemonListItemView(pokemon: Pokemon, onPokemonClick: (String) -> Unit, modi
     ElevatedCard(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp)
             .clickable { onPokemonClick(pokemon.name) },
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -201,21 +201,25 @@ fun PokemonListItemView(pokemon: Pokemon, onPokemonClick: (String) -> Unit, modi
                 NetworkImage(
                     url = pokemon.img,
                     contentDescription= pokemon.name + "\n Pokémon height:" + pokemon.height + "\n Pokémon weight:" + pokemon.weight,
-                    modifier = Modifier.size(120.dp)
+                    modifier = Modifier.size(110.dp)
                 )
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(4.dp))
+            var pokemonName = pokemon.name.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
             Text(
-                text = pokemon.name.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }, // Capitalize
-                style = MaterialTheme.typography.titleMedium
+                text = pokemonName.truncateAtWord(20),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+
             )
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Loop through pokemon.types and render each type name
             Box{
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                    horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterHorizontally),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     if (pokemon.types.isNotEmpty()) {
@@ -223,16 +227,18 @@ fun PokemonListItemView(pokemon: Pokemon, onPokemonClick: (String) -> Unit, modi
                             val color = getTypeColor(type)
                             Box(
                                 modifier = Modifier
-                                    .clip(RoundedCornerShape(8.dp))
+                                    .clip(RoundedCornerShape(6.dp))
                                     .background(color)
                                     .align(Alignment.CenterVertically),
                                 contentAlignment = Alignment.Center
                             ){
                                 Text(
                                     text = type.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() },
-                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 12.sp,
+                                    color = Color.White,
                                     modifier = Modifier
-                                        .padding(5.dp),
+                                        .padding(4.dp),
                                     textAlign = TextAlign.Center
                                 )
                             }
@@ -289,6 +295,9 @@ fun getTypeColor(type: String): Color{
         "dark" -> color = dark
         "steel" -> color = steel
         "fairy" -> color = fairy
+        "shadow" -> color = shadow
+        "stellar" -> color = stellar
+        else -> color = unknown
     }
     return color
 }
@@ -310,8 +319,6 @@ fun getAvailableSurfaceHeight(context: Context): Int {
         display.getSize(size)
         val screenHeight = size.y
 
-        // Older versions might include navigation bar height in screen height.
-        // Consider this when using deprecated methods.
         val resourceId = context.resources.getIdentifier("status_bar_height", "dimen", "android")
         val statusBarHeight = if (resourceId > 0) {
             context.resources.getDimensionPixelSize(resourceId)
@@ -328,4 +335,26 @@ fun getAvailableSurfaceHeight(context: Context): Int {
 
         return  screenHeight - statusBarHeight - navigationBarHeight
     }
+}
+
+fun String.truncateAtWord(maxLength: Int): String {
+    if (this.length <= maxLength) {
+        return this
+    }
+
+    if (maxLength <= 3) { // Ensure maxLength is at least big enough for "..."
+        return "..."
+    }
+
+    val actualMaxLength = maxLength - 3 // Space for "..."
+
+    var truncated = this.take(actualMaxLength)
+
+    if (this.length > actualMaxLength && actualMaxLength > 0 && !this[actualMaxLength].isWhitespace()) {
+        val lastSpaceIndex = truncated.lastIndexOf(' ')
+        if (lastSpaceIndex > 0) { // Found a space to break at
+            truncated = truncated.substring(0, lastSpaceIndex)
+        }
+    }
+    return truncated.trimEnd() + "..."
 }

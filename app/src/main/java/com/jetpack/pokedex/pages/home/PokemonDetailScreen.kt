@@ -1,10 +1,11 @@
-package com.jetpack.pokedex.pages
+package com.jetpack.pokedex.pages.home
 
 import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,16 +38,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.jetpack.pokedex.data.model.Pokemon
-import com.jetpack.pokedex.viewmodel.PokemonViewModel
+import com.jetpack.pokedex.viewmodel.pokemon.PokemonViewModel
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.Color
+import com.jetpack.pokedex.AppDestinations
 import com.jetpack.pokedex.sidecomponents.BackwardButton
 import com.jetpack.pokedex.sidecomponents.ScrollToTopButton
 import com.jetpack.pokedex.ui.theme.LT100
 import com.jetpack.pokedex.ui.theme.LT150
+import com.jetpack.pokedex.ui.theme.LT200
+import com.jetpack.pokedex.ui.theme.LT250
 import com.jetpack.pokedex.ui.theme.LT300
 import com.jetpack.pokedex.ui.theme.LT50
 import com.jetpack.pokedex.ui.theme.LightGrey
@@ -97,7 +101,11 @@ fun PokemonDetailScreen(
         if (pokemonDetail != null) {
 
             // Pokemon Img
-            NetworkImage(url = pokemonDetail!!.img, contentDescription = pokemonDetail!!.name, modifier = Modifier.size(200.dp))
+            NetworkImage(
+                url = pokemonDetail!!.img,
+                contentDescription = pokemonDetail!!.name,
+                modifier = Modifier.size(200.dp)
+            )
 
             // Pokemon Name
             Text(
@@ -122,8 +130,9 @@ fun PokemonDetailScreen(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(8.dp))
                                     .background(color)
-                                    .align(Alignment.CenterVertically),
-                                contentAlignment = Alignment.Center
+                                    .align(Alignment.CenterVertically)
+                                    .clickable { navController.navigate(route = "${AppDestinations.TYPE_DETAIL_ROUTE}/${type}")},
+                                contentAlignment = Alignment.Center,
                             ){
                                 Text(
                                     text = type.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() },
@@ -276,16 +285,22 @@ fun PokemonDetailScreen(
                                 verticalArrangement = Arrangement.spacedBy(8.dp) // Spacing between lines
                             ) {
                                 pokemonDetail!!.moves.forEach { move ->
+                                    var moveBaseName = move.move.name.split("-")
+                                    var moveName = moveBaseName[0].replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+                                    for (i in 1 until moveBaseName.size){
+                                        moveName += " ${moveBaseName[i].replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }}"
+                                    }
                                     Box(
                                         modifier = Modifier
                                             .clip(RoundedCornerShape(8.dp))
-                                            .background(color = LightGrey),
-                                        contentAlignment = Alignment.Center
+                                            .background(color = LightGrey)
+                                            .clickable {
+                                                navController.navigate("${AppDestinations.MOVE_DETAIL_ROUTE}/${move.move.name}")
+                                            },
+                                        contentAlignment = Alignment.Center,
                                     ){
                                         Text(
-                                            text = move.move.name.replaceFirstChar {
-                                                if (it.isLowerCase()) it.titlecase()
-                                                else it.toString() },
+                                            text = moveName,
                                             style = MaterialTheme.typography.bodyMedium,
                                             modifier = Modifier
                                                 .padding(top = 5.dp, bottom = 5.dp, start = 10.dp, end = 10.dp),
@@ -323,7 +338,8 @@ fun PokemonDetailScreen(
                 coroutineScope.launch {
                     scrollState.animateScrollTo(0)
                 }
-            }
+            },
+            isVisibleStart = false,
         )
     }
 
@@ -347,9 +363,9 @@ fun statBarColor(stat: Int): Color{
     } else if (stat in 101..150) {
         LT150
     } else if (stat in 151..200) {
-        LT150
+        LT200
     } else if (stat in 201..250) {
-        LT150
+        LT250
     } else {
         LT300
     }
