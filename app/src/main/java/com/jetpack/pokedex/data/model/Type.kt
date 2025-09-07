@@ -1,16 +1,16 @@
 package com.jetpack.pokedex.data.model
 
 data class TypeListResponse(
-    val count: Int,
-    val next: String,
-    val previous: String,
+    override val count: Int,
+    override val next: String,
+    override val previous: String,
     val results: List<TypeDetail>
-)
+) : BaseObjectListResponse(count, next, previous)
 
 data class TypeDetail(
     var id: String,
-    val url: String,
-    val name: String,
+    override val url: String,
+    override val name: String,
     var generation: String,
     var doubleDamageFrom: List<TypeBaseDetail>,
     var doubleDamageTo: List<TypeBaseDetail>,
@@ -20,4 +20,4 @@ data class TypeDetail(
     var noDamageTo: List<TypeBaseDetail>,
     var moves: List<MoveBaseDetail>,
     var pokemon: List<PokemonBaseDetail>
-)
+) : BaseObjectDetail(name, url)

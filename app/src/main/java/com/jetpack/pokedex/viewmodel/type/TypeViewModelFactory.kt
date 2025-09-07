@@ -2,10 +2,10 @@ package com.jetpack.pokedex.viewmodel.type
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.jetpack.pokedex.data.repository.ITypeRepository
+import com.jetpack.pokedex.data.repository.TypeRepository
 
 class TypeViewModelFactory(
-    private val typeRepository: ITypeRepository
+    private val typeRepository: TypeRepository
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")

@@ -2,10 +2,10 @@ package com.jetpack.pokedex.viewmodel.move
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.jetpack.pokedex.data.repository.IMoveRepository
+import com.jetpack.pokedex.data.repository.MoveRepository
 
 class MoveViewModelFactory (
-    private val moveRepository: IMoveRepository
+    private val moveRepository: MoveRepository
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")

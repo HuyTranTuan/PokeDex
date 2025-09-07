@@ -1,8 +1,7 @@
 @file:Suppress("KotlinConstantConditions")
 
-package com.jetpack.pokedex.pages.moves
+package com.jetpack.pokedex.screens.moves
 
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -43,7 +42,6 @@ import com.jetpack.pokedex.data.model.MoveDetail
 import com.jetpack.pokedex.sidecomponents.ScrollToTopButton
 import com.jetpack.pokedex.ui.theme.LightGrey
 import com.jetpack.pokedex.viewmodel.move.MoveViewModel
-import com.jetpack.pokedex.viewmodel.pokemon.PokemonViewModel
 import kotlinx.coroutines.launch
 
 @Composable
@@ -115,7 +113,6 @@ fun MoveLazyList(
     Column (
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = 110.dp, bottom = 95.dp)
             .verticalScroll(state),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center

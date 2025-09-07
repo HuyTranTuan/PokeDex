@@ -3,33 +3,39 @@ activityComposeVersion = "1.10.1"
 agp = "8.10.1"
 coilCompose = "2.7.0"
 coreSplashscreen = "1.0.1"
+fragmentKtxVersion = "1.8.9"
+koinAndroid = "4.1.0"
+koinAndroidxCompose = "4.1.0"
+koinAndroidxViewmodel = "3.5.6"
 kotlin = "2.1.10"
-coreKtx = "1.16.0"
+coreKtx = "1.17.0"
 junit = "4.13.2"
-junitVersion = "1.2.1"
-espressoCore = "3.6.1"
+junitVersion = "1.3.0"
+espressoCore = "3.7.0"
 appcompat = "1.7.1"
 material = "1.12.0"
 activity = "1.10.1"
 constraintlayout = "2.2.1"
 firebaseAppdistributionGradle = "5.1.1"
-composeBom = "2025.06.01"
-lifecycle = "2.9.1"
-composeRuntime = "1.8.3"
+composeBom = "2025.08.01"
+lifecycle = "2.9.3"
+composeRuntime = "1.9.0"
 jetbrainsCompose = "1.6.10"
-navigationCompose = "2.9.2"
+navigationCompose = "2.9.3"
 preferenceKtx = "1.2.1"
 tools = "1.0.0-alpha13"
 volley = "1.2.1"
 
 [libraries]
 androidx-activity-compose-v190 = { module = "androidx.activity:activity-compose", version.ref = "activityComposeVersion" }
+androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activityComposeVersion" }
 androidx-compose-material3-material3 = { module = "androidx.compose.material3:material3" }
 androidx-compose-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata", version.ref = "composeRuntime" }
 androidx-compose-ui-ui = { module = "androidx.compose.ui:ui" }
 androidx-compose-ui-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
+androidx-fragment-ktx-v180 = { module = "androidx.fragment:fragment-ktx", version.ref = "fragmentKtxVersion" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 androidx-preference-ktx = { module = "androidx.preference:preference-ktx", version.ref = "preferenceKtx" }
 androidx-tools-v100alpha13 = { module = "androidx.privacysandbox.tools:tools", version.ref = "tools" }
@@ -38,6 +44,9 @@ junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+koin-android = { module = "io.insert-koin:koin-android", version.ref = "koinAndroid" }
+koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koinAndroidxCompose" }
+koin-androidx-viewmodel = { module = "io.insert-koin:koin-androidx-viewmodel", version.ref = "koinAndroidxViewmodel" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
@@ -58,7 +67,7 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 ui = { module = "androidx.compose.ui:ui" }
 ui-graphics = { module = "androidx.compose.ui:ui-graphics" }
 ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest", version = "1.8.3" }
+ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest", version = "1.9.0" }
 ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
 volley = { module = "com.android.volley:volley", version.ref = "volley" }

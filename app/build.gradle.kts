@@ -9,7 +9,7 @@ plugins {
 
 android {
     namespace = "com.jetpack.pokedex"
-    compileSdk = 35
+    compileSdk = 36
 
     packaging {
         resources {
@@ -20,7 +20,7 @@ android {
     defaultConfig {
         applicationId = "com.jetpack.pokedex"
         minSdk = 29
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
@@ -98,4 +98,9 @@ dependencies {
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.preference.ktx)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.koin.android)
+    implementation(libs.koin.androidx.compose)
+
+    implementation(libs.androidx.fragment.ktx.v180)
+    implementation(libs.androidx.activity.ktx)
 }

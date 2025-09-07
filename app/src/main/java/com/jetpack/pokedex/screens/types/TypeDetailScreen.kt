@@ -1,6 +1,6 @@
 @file:Suppress("UNCHECKED_CAST")
 
-package com.jetpack.pokedex.pages.types
+package com.jetpack.pokedex.screens.types
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -45,9 +45,9 @@ import androidx.navigation.NavController
 import com.jetpack.pokedex.AppDestinations
 import com.jetpack.pokedex.data.model.Pokemon
 import com.jetpack.pokedex.data.model.TypeDetail
-import com.jetpack.pokedex.pages.home.getTypeColor
-import com.jetpack.pokedex.pages.moves.MovePokemonLazyList
-import com.jetpack.pokedex.pages.moves.getGenerationName
+import com.jetpack.pokedex.screens.home.getTypeColor
+import com.jetpack.pokedex.screens.moves.MovePokemonLazyList
+import com.jetpack.pokedex.screens.moves.getGenerationName
 import com.jetpack.pokedex.sidecomponents.BackwardButton
 import com.jetpack.pokedex.sidecomponents.ScrollToTopButton
 import com.jetpack.pokedex.ui.theme.LightGrey
@@ -87,14 +87,19 @@ fun TypeDetailScreen(
         }
     }
     Column (
-        modifier = Modifier.fillMaxSize().background(Color.White).padding(top = 100.dp, bottom = 105.dp).verticalScroll(scrollState),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+            .verticalScroll(scrollState),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ){
         Spacer(modifier = Modifier.padding(20.dp))
 
         // Title
-        Box(modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(getTypeColor(typeName))){
+        Box(modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(getTypeColor(typeName))){
             Text(
                 text = "Type: ${typeName.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }}",
                 fontSize = 18.sp,
@@ -105,7 +110,9 @@ fun TypeDetailScreen(
         }
 
         // Generation
-        Row (modifier = Modifier.width(maxOf(200.dp, 370.dp)).padding(vertical = 8.dp)) {
+        Row (modifier = Modifier
+            .width(maxOf(200.dp, 370.dp))
+            .padding(vertical = 8.dp)) {
             Text(
                 text = "First appeared in Generation ${getGenerationName(typeDetail?.generation.toString())}",
                 modifier = Modifier.padding(vertical = 5.dp, horizontal = 10.dp),
@@ -115,7 +122,9 @@ fun TypeDetailScreen(
         }
 
         // Double Damage From
-        Row (modifier = Modifier.width(maxOf(200.dp, 370.dp)).padding(vertical = 2.dp)) {
+        Row (modifier = Modifier
+            .width(maxOf(200.dp, 370.dp))
+            .padding(vertical = 2.dp)) {
             Text( text = "Double Damage From", fontSize = 14.sp, color = Color.DarkGray )
         }
         if (typeDetail?.doubleDamageFrom?.isNotEmpty() == true) {
@@ -150,12 +159,16 @@ fun TypeDetailScreen(
         Spacer(modifier = Modifier.padding(8.dp))
 
         // Double Damage To
-        Row (modifier = Modifier.width(maxOf(200.dp, 370.dp)).padding(vertical = 2.dp)) {
+        Row (modifier = Modifier
+            .width(maxOf(200.dp, 370.dp))
+            .padding(vertical = 2.dp)) {
             Text( text = "Double Damage To", fontSize = 14.sp, color = Color.DarkGray )
         }
         if (typeDetail?.doubleDamageTo?.isNotEmpty() == true) {
             FlowRow(
-                modifier = Modifier.width(maxOf(250.dp, 370.dp)).padding(horizontal = 16.dp, vertical = 8.dp),
+                modifier = Modifier
+                    .width(maxOf(250.dp, 370.dp))
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -177,7 +190,9 @@ fun TypeDetailScreen(
             }
         } else {
             FlowRow(
-                modifier = Modifier.width(maxOf(250.dp, 370.dp)).padding(horizontal = 16.dp, vertical = 8.dp),
+                modifier = Modifier
+                    .width(maxOf(250.dp, 370.dp))
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {Text(text = "No type",modifier = Modifier.padding(vertical = 5.dp, horizontal = 10.dp))}
@@ -185,12 +200,16 @@ fun TypeDetailScreen(
         Spacer(modifier = Modifier.padding(8.dp))
 
         // Half Damage From
-        Row (modifier = Modifier.width(maxOf(200.dp, 370.dp)).padding(vertical = 2.dp)) {
+        Row (modifier = Modifier
+            .width(maxOf(200.dp, 370.dp))
+            .padding(vertical = 2.dp)) {
             Text(text = "Half Damage From", fontSize = 14.sp, color = Color.DarkGray )
         }
         if (typeDetail?.halfDamageFrom?.isNotEmpty() == true) {
             FlowRow(
-                modifier = Modifier.width(maxOf(250.dp, 370.dp)).padding(horizontal = 16.dp, vertical = 8.dp),
+                modifier = Modifier
+                    .width(maxOf(250.dp, 370.dp))
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -212,7 +231,9 @@ fun TypeDetailScreen(
             }
         } else {
             FlowRow(
-                modifier = Modifier.width(maxOf(250.dp, 370.dp)).padding(horizontal = 16.dp, vertical = 8.dp),
+                modifier = Modifier
+                    .width(maxOf(250.dp, 370.dp))
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {Text(text = "No type",modifier = Modifier.padding(vertical = 5.dp, horizontal = 10.dp))}
@@ -220,12 +241,16 @@ fun TypeDetailScreen(
         Spacer(modifier = Modifier.padding(8.dp))
 
         // Half Damage To
-        Row (modifier = Modifier.width(maxOf(200.dp, 370.dp)).padding(vertical = 2.dp)) {
+        Row (modifier = Modifier
+            .width(maxOf(200.dp, 370.dp))
+            .padding(vertical = 2.dp)) {
             Text( text = "Half Damage To", fontSize = 14.sp, color = Color.DarkGray )
         }
         if (typeDetail?.halfDamageTo?.isNotEmpty() == true) {
             FlowRow(
-                modifier = Modifier.width(maxOf(250.dp, 370.dp)).padding(horizontal = 16.dp, vertical = 8.dp),
+                modifier = Modifier
+                    .width(maxOf(250.dp, 370.dp))
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -245,7 +270,9 @@ fun TypeDetailScreen(
             }
         } else {
             FlowRow(
-                modifier = Modifier.width(maxOf(250.dp, 370.dp)).padding(horizontal = 16.dp, vertical = 8.dp),
+                modifier = Modifier
+                    .width(maxOf(250.dp, 370.dp))
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) { Text(text = "No type", modifier = Modifier.padding(vertical = 5.dp, horizontal = 10.dp)) }
@@ -253,12 +280,16 @@ fun TypeDetailScreen(
         Spacer(modifier = Modifier.padding(8.dp))
 
         // No Damage From
-        Row (modifier = Modifier.width(maxOf(200.dp, 370.dp)).padding(vertical = 2.dp)) {
+        Row (modifier = Modifier
+            .width(maxOf(200.dp, 370.dp))
+            .padding(vertical = 2.dp)) {
             Text( text = "No Damage From", fontSize = 14.sp, color = Color.DarkGray )
         }
         if (typeDetail?.noDamageFrom?.isNotEmpty() == true) {
             FlowRow(
-                modifier = Modifier.width(maxOf(250.dp, 370.dp)).padding(horizontal = 16.dp, vertical = 8.dp),
+                modifier = Modifier
+                    .width(maxOf(250.dp, 370.dp))
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -278,7 +309,9 @@ fun TypeDetailScreen(
             }
         } else {
             FlowRow(
-                modifier = Modifier.width(maxOf(250.dp, 370.dp)).padding(horizontal = 16.dp, vertical = 8.dp),
+                modifier = Modifier
+                    .width(maxOf(250.dp, 370.dp))
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) { Text(text = "No type", modifier = Modifier.padding(vertical = 5.dp, horizontal = 10.dp),) }
@@ -286,12 +319,16 @@ fun TypeDetailScreen(
         Spacer(modifier = Modifier.padding(8.dp))
 
         // No Damage To
-        Row (modifier = Modifier.width(maxOf(200.dp, 370.dp)).padding(vertical = 2.dp)) {
+        Row (modifier = Modifier
+            .width(maxOf(200.dp, 370.dp))
+            .padding(vertical = 2.dp)) {
             Text( text = "No Damage To", fontSize = 14.sp, color = Color.DarkGray )
         }
         if (typeDetail?.noDamageTo?.isNotEmpty() == true) {
             FlowRow(
-                modifier = Modifier.width(maxOf(250.dp, 370.dp)).padding(horizontal = 16.dp, vertical = 8.dp),
+                modifier = Modifier
+                    .width(maxOf(250.dp, 370.dp))
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp), // Spacing between items on the same line
                 verticalArrangement = Arrangement.spacedBy(8.dp) // Spacing between lines
             ) {
@@ -311,7 +348,9 @@ fun TypeDetailScreen(
             }
         } else {
             FlowRow(
-                modifier = Modifier.width(maxOf(250.dp, 370.dp)).padding(horizontal = 16.dp, vertical = 8.dp),
+                modifier = Modifier
+                    .width(maxOf(250.dp, 370.dp))
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp), // Spacing between items on the same line
                 verticalArrangement = Arrangement.spacedBy(8.dp) // Spacing between lines
             ) { Text(text = "No type",modifier = Modifier.padding(vertical = 5.dp, horizontal = 10.dp)) }
@@ -319,12 +358,16 @@ fun TypeDetailScreen(
         Spacer(modifier = Modifier.padding(8.dp))
 
         // Moves
-        Row (modifier = Modifier.width(maxOf(200.dp, 370.dp)).padding(vertical = 2.dp)) {
+        Row (modifier = Modifier
+            .width(maxOf(200.dp, 370.dp))
+            .padding(vertical = 2.dp)) {
             Text( text = "Moves", fontSize = 14.sp, color = Color.DarkGray )
         }
         if (typeDetail?.moves?.isNotEmpty() == true) {
             FlowRow(
-                modifier = Modifier.width(maxOf(250.dp, 370.dp)).padding(horizontal = 16.dp, vertical = 8.dp),
+                modifier = Modifier
+                    .width(maxOf(250.dp, 370.dp))
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -344,7 +387,9 @@ fun TypeDetailScreen(
             }
         } else {
             FlowRow(
-                modifier = Modifier.width(maxOf(250.dp, 370.dp)).padding(horizontal = 16.dp, vertical = 8.dp),
+                modifier = Modifier
+                    .width(maxOf(250.dp, 370.dp))
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) { Text(text = "No move in type", modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp),) }
@@ -353,7 +398,9 @@ fun TypeDetailScreen(
 
         // Pokemon in type
         Row (
-            modifier = Modifier.width(maxOf(200.dp, 370.dp)).padding(vertical = 3.dp),
+            modifier = Modifier
+                .width(maxOf(200.dp, 370.dp))
+                .padding(vertical = 3.dp),
             horizontalArrangement = Arrangement.Start
         ){Text( text = "Pokemon in type: ", fontSize = 14.sp)}
         val pokeList = mutableListOf<Pokemon?>()
@@ -377,7 +424,9 @@ fun TypeDetailScreen(
         }
         val isLoading by pokemonViewModel.isLoading.observeAsState(initial = false)
         val canLoadMore by pokemonViewModel.isLoading.observeAsState(initial = false)
-        Box( modifier = Modifier.fillMaxWidth().height(600.dp)){
+        Box( modifier = Modifier
+            .fillMaxWidth()
+            .height(600.dp)){
             if (pokeList.isEmpty() && isLoading) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             } else if (pokeList.isEmpty()) {

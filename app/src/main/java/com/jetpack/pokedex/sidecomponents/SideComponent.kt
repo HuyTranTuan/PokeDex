@@ -23,7 +23,7 @@ fun ScrollToTopButton(goToTop:() -> Unit, isVisibleStart: Boolean = false) {
         FloatingActionButton(
             shape = RoundedCornerShape(50),
             modifier = Modifier
-                .padding(end = 16.dp, bottom = 105.dp)
+                .padding(end = 16.dp, bottom = 16.dp)
                 .size(50.dp)
                 .align(if (isVisibleStart == true){
                         Alignment.BottomStart
@@ -42,13 +42,15 @@ fun ScrollToTopButton(goToTop:() -> Unit, isVisibleStart: Boolean = false) {
 
 @Composable
 fun BackwardButton(navController: NavController) {
-    FloatingActionButton(
-        shape = RoundedCornerShape(25),
-        onClick = { navController.navigateUp() },
-        modifier = Modifier
-            .padding(top = 120.dp, start = 16.dp)
-            .size(50.dp)
-    ) {
-        Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, "Go Backward")
+    Box() {
+        FloatingActionButton(
+            shape = RoundedCornerShape(25),
+            onClick = { navController.navigateUp() },
+            modifier = Modifier
+                .padding(top = 16.dp, start = 16.dp)
+                .size(50.dp)
+        ) {
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, "Go Backward")
+        }
     }
 }

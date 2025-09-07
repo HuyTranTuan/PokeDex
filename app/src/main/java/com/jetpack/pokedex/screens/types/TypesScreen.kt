@@ -1,4 +1,4 @@
-package com.jetpack.pokedex.pages.types
+package com.jetpack.pokedex.screens.types
 
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -34,9 +33,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.jetpack.pokedex.AppDestinations
-import com.jetpack.pokedex.data.source.OkHttpApiService
-import com.jetpack.pokedex.pages.home.getTypeColor
-import com.jetpack.pokedex.pages.moves.getGenerationName
+import com.jetpack.pokedex.screens.home.getTypeColor
+import com.jetpack.pokedex.screens.moves.getGenerationName
 import com.jetpack.pokedex.sidecomponents.ScrollToTopButton
 import com.jetpack.pokedex.viewmodel.type.TypeViewModel
 import kotlinx.coroutines.launch
@@ -55,8 +53,7 @@ fun TypesScreen(typeViewModel: TypeViewModel, navController: NavController) {
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
-            .verticalScroll(state)
-            .padding(top = 110.dp, bottom = 100.dp),
+            .verticalScroll(state),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ){
@@ -71,7 +68,8 @@ fun TypesScreen(typeViewModel: TypeViewModel, navController: NavController) {
         // Type List
         for (i in typeList){
             Row (
-                modifier = Modifier.width(maxOf(200.dp, 370.dp))
+                modifier = Modifier
+                    .width(maxOf(200.dp, 370.dp))
                     .padding(vertical = 8.dp),
             ) {
                 Column (
@@ -84,7 +82,7 @@ fun TypesScreen(typeViewModel: TypeViewModel, navController: NavController) {
                             .clip(RoundedCornerShape(6.dp))
                             .background(getTypeColor(i.name))
                             .clickable {
-                                navController.navigate("${AppDestinations.TYPE_DETAIL_ROUTE}/${i.name}")
+                                navController.navigate("${AppDestinations.TYPE_DETAIL_ROUTE}/${i.name}");
                             }
                     ){
                         Text(

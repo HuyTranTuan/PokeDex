@@ -1,6 +1,7 @@
-package com.jetpack.pokedex.pages.home
+package com.jetpack.pokedex.screens.home
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -92,7 +93,6 @@ fun PokemonDetailScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = 110.dp, bottom = 95.dp)
             .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -131,7 +131,9 @@ fun PokemonDetailScreen(
                                     .clip(RoundedCornerShape(8.dp))
                                     .background(color)
                                     .align(Alignment.CenterVertically)
-                                    .clickable { navController.navigate(route = "${AppDestinations.TYPE_DETAIL_ROUTE}/${type}")},
+                                    .clickable {
+                                        navController.navigate("${AppDestinations.TYPE_DETAIL_ROUTE}/$type");
+                                    },
                                 contentAlignment = Alignment.Center,
                             ){
                                 Text(
@@ -295,7 +297,7 @@ fun PokemonDetailScreen(
                                             .clip(RoundedCornerShape(8.dp))
                                             .background(color = LightGrey)
                                             .clickable {
-                                                navController.navigate("${AppDestinations.MOVE_DETAIL_ROUTE}/${move.move.name}")
+                                                navController.navigate("${AppDestinations.MOVE_DETAIL_ROUTE}/${move.move.name}");
                                             },
                                         contentAlignment = Alignment.Center,
                                     ){

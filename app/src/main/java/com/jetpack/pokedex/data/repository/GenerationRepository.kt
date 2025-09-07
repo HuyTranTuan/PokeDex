@@ -1,23 +1,19 @@
 package com.jetpack.pokedex.data.repository
 
+import com.jetpack.pokedex.data.model.GenerationDetail
 import com.jetpack.pokedex.data.model.GenerationListResponse
-import com.jetpack.pokedex.data.source.GenerationApiCallBack
 import com.jetpack.pokedex.data.source.GenerationApiService
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 interface IGenerationRepository {
-    fun getGenerationList(
-        limit: Int,
-        offset: Int,
-        callback: GenerationApiCallBack<GenerationListResponse>
-    )
+    suspend fun fetchGenerationList(limit: Int, offset: Int) : GenerationListResponse
 }
 
 class GenerationRepository(private val apiService: GenerationApiService) : IGenerationRepository{
-    override fun getGenerationList(
-        limit: Int,
-        offset: Int,
-        callback: GenerationApiCallBack<GenerationListResponse>
-    ) {
-        apiService.getGenerationList(limit, offset, callback)
+    override suspend fun fetchGenerationList(limit: Int, offset: Int): GenerationListResponse {
+        return withContext(Dispatchers.IO) {
+            apiService.getGenerationList(limit, offset)
+        }
     }
 }

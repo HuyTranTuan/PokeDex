@@ -1,4 +1,4 @@
-package com.jetpack.pokedex.pages.generations
+package com.jetpack.pokedex.screens.generations
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -37,8 +37,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.jetpack.pokedex.AppDestinations
-import com.jetpack.pokedex.pages.home.getTypeColor
-import com.jetpack.pokedex.pages.moves.getGenerationName
+import com.jetpack.pokedex.screens.home.getTypeColor
+import com.jetpack.pokedex.screens.moves.getGenerationName
 import com.jetpack.pokedex.sidecomponents.ScrollToTopButton
 import com.jetpack.pokedex.ui.theme.DarkGrey
 import com.jetpack.pokedex.ui.theme.LightGrey
@@ -61,8 +61,7 @@ fun GenerationsScreen(generationViewModel: GenerationViewModel, navController: N
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
-            .verticalScroll(state)
-            .padding(top = 110.dp, bottom = 100.dp),
+            .verticalScroll(state),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ){
@@ -97,7 +96,7 @@ fun GenerationsScreen(generationViewModel: GenerationViewModel, navController: N
                             }
                     ){
                         Text(
-                            text = "Generation ${getGenerationName(i.name)}",
+                            text = "Gen ${getGenerationName(i.name)}",
                             fontWeight = FontWeight.Bold,
                             color = DarkGrey,
                             modifier = Modifier.padding(vertical = 5.dp, horizontal = 10.dp)

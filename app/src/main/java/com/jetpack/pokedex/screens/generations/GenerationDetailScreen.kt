@@ -1,4 +1,4 @@
-package com.jetpack.pokedex.pages.generations
+package com.jetpack.pokedex.screens.generations
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -44,9 +44,9 @@ import com.jetpack.pokedex.AppDestinations
 import com.jetpack.pokedex.data.model.GenerationDetail
 import com.jetpack.pokedex.data.model.MoveDetail
 import com.jetpack.pokedex.data.model.Pokemon
-import com.jetpack.pokedex.pages.home.PokemonListItemView
-import com.jetpack.pokedex.pages.home.getTypeColor
-import com.jetpack.pokedex.pages.moves.getGenerationName
+import com.jetpack.pokedex.screens.home.PokemonListItemView
+import com.jetpack.pokedex.screens.home.getTypeColor
+import com.jetpack.pokedex.screens.moves.getGenerationName
 import com.jetpack.pokedex.sidecomponents.BackwardButton
 import com.jetpack.pokedex.sidecomponents.ScrollToTopButton
 import com.jetpack.pokedex.ui.theme.DarkGrey
@@ -78,8 +78,7 @@ fun GenerationDetailScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
-            .verticalScroll(state)
-            .padding(top = 110.dp, bottom = 100.dp),
+            .verticalScroll(state),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ){
@@ -326,7 +325,7 @@ fun GenerationDetailScreen(
                 for (p in 0 until 4){
                     if(generation.pokemonSpecies.isNotEmpty()){
                         val pokemonCard = pokemonViewModel.getPokemonDetailByName(generation.pokemonSpecies[p].name)
-                        if (pokemonCard != null && pokemonCard.types.isNotEmpty()) {
+                        if (pokemonCard?.types?.isNotEmpty() == true) {
                             if (pokemonCard.types[0] =="grass" || pokemonCard.types[0] =="fire" || pokemonCard.types[0] =="water"){
                                 pokeList.add(pokemonCard)
                             }

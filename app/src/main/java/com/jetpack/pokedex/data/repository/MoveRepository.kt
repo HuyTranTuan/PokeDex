@@ -1,23 +1,19 @@
 package com.jetpack.pokedex.data.repository
 
+import com.jetpack.pokedex.data.model.MoveDetail
 import com.jetpack.pokedex.data.model.MoveListResponse
-import com.jetpack.pokedex.data.source.MoveApiCallBack
 import com.jetpack.pokedex.data.source.MoveApiService
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 interface IMoveRepository {
-    fun getMoveList(
-        limit: Int,
-        offset: Int,
-        callback: MoveApiCallBack<MoveListResponse>
-    )
+    suspend fun fetchMoveList(limit: Int, offset: Int) : MoveListResponse
 }
 
 class MoveRepository(private val apiService: MoveApiService) : IMoveRepository {
-    override fun getMoveList(
-        limit: Int,
-        offset: Int,
-        callback: MoveApiCallBack<MoveListResponse>
-    ) {
-        apiService.getMoveList(limit, offset, callback)
+    override suspend fun fetchMoveList(limit: Int, offset: Int): MoveListResponse {
+        return withContext(Dispatchers.IO) {
+            apiService.getMoveList(limit, offset)
+        }
     }
 }

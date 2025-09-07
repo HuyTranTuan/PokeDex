@@ -24,104 +24,115 @@ import com.jetpack.pokedex.data.model.TypeBaseDetail
 import com.jetpack.pokedex.data.model.TypeDetail
 import com.jetpack.pokedex.data.model.TypeListResponse
 import com.jetpack.pokedex.data.model.VersionGroupDetail
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.suspendCancellableCoroutine
 import okhttp3.*
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.IOException
 import kotlin.collections.mutableListOf
+import kotlin.coroutines.resumeWithException
 
 @Suppress("RECEIVER_NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
-class OkHttpApiService(private val client: OkHttpClient): PokemonApiService, MoveApiService, GenerationApiService, TypeApiService {
-
+class OkHttpApiService(private val client: OkHttpClient): PokemonApiService, GenerationApiService, MoveApiService, TypeApiService {
     companion object{
-        private const val BASE_URL = "https://pokeapi.co/api/v2/pokemon"
-        private const val BASE_GENERATION_URL = "https://pokeapi.co/api/v2/generation"
-        private const val BASE_TYPE_URL = "https://pokeapi.co/api/v2/type"
-        private const val BASE_MOVE_URL = "https://pokeapi.co/api/v2/move"
+        private const val BASE_URL = "https://pokeapi.co/"
+        private const val VERSION = "api/v2/"
     }
 
-    override fun getPokemonList(limit: Int, offset: Int, callback: PokemonApiCallBack<PokemonListResponse>) {
-        val urlBuilder = BASE_URL.toHttpUrlOrNull()?.newBuilder()
-            ?: run {
-                callback.onError("Invalid base URL")
-                return
-            }
-        urlBuilder.addQueryParameter("limit", limit.toString())
-        urlBuilder.addQueryParameter("offset", offset.toString())
-
-        val url =  urlBuilder.build().toString()
-        val request = Request.Builder().url(url).get().build()
-
-        val pokemonList = mutableListOf<Pokemon>()
-        var count = 0
-        var next = ""
-        var previous = ""
-        var resultsArray: JSONArray
-        client.newCall(request).enqueue(object: Callback{
-            override fun onFailure(call: Call, e: IOException) {
-                callback.onError(e.localizedMessage ?: "Network request failed")
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                response.use {
-                    if (!response.isSuccessful) {
-                        callback.onError("API Error: ${response.code} - ${response.message}")
-                        return
-                    }
-                    val responseBody = response.body.string()
-                    if (false) {
-                        callback.onError("Empty response body")
-                        return
-                    }
-                    try {
-                        val rootObject = JSONObject(responseBody)
-                        count = rootObject.getInt("count")
-                        next = rootObject.optString("next")
-                        previous = rootObject.optString("previous")
-                        resultsArray = rootObject.getJSONArray("results")
-
-                        for (i in 0 until resultsArray.length()) {
-                            val pokemonJson = resultsArray.getJSONObject(i)
-                            val name = pokemonJson.getString("name")
-                            val url = pokemonJson.getString("url")
-                            val pokemon = Pokemon(
-                                id = "",
-                                name = name,
-                                url = url,
-                                img = "",
-                                types = emptyList(),
-                                height = "",
-                                weight = "",
-                                abilities = emptyList(),
-                                stats = emptyList(),
-                                moves = emptyList(),
-                                species = "",
-                            )
-                            pokemonList.add(pokemon)
-                        }
-                        mapPokemonListResponse(pokemonList)
-                        val pokemonListResponse = PokemonListResponse(
-                            count = count,
-                            next = next,
-                            previous = previous,
-                            results = pokemonList
-                        )
-                        // --- End Basic JSON Parsing ---
-
-                        callback.onSuccess(pokemonListResponse)
-
-                    } catch (e: Exception) {
-                        callback.onError("Error parsing response: ${e.localizedMessage}")
-                    }
-
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override suspend fun getPokemonList(limit: Int, offset: Int): PokemonListResponse {
+        return suspendCancellableCoroutine { continuation ->
+            val urlBuilder = (BASE_URL+VERSION+"pokemon").toHttpUrlOrNull()?.newBuilder()
+                ?: run {
+                    if (continuation.isActive) continuation.resumeWithException(IllegalArgumentException("Invalid base URL for list"))
+                    return@suspendCancellableCoroutine
                 }
-            }
-        })
+            urlBuilder.addQueryParameter("limit", limit.toString())
+            urlBuilder.addQueryParameter("offset", offset.toString())
 
+            val url =  urlBuilder.build().toString()
+            val request = Request.Builder().url(url).get().build()
+            val call = client.newCall(request)
+
+            continuation.invokeOnCancellation { call.cancel() }
+
+            val pokemonList = mutableListOf<Pokemon>()
+            var count = 0
+            var next = ""
+            var previous = ""
+            var resultsArray: JSONArray
+            call.enqueue(object: Callback{
+                override fun onFailure(call: Call, e: IOException) {
+                    if (continuation.isActive) continuation.resumeWithException(e)
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    if (!continuation.isActive) {
+                        response.close(); return
+                    }
+                    response.use {
+                        if (!response.isSuccessful) {
+                            if (continuation.isActive) {
+                                continuation.resumeWithException(IOException("API Error (list): ${it.code} - ${it.message}"))
+                            }
+                            return
+                        }
+                        val responseBody = response.body.string()
+                        if (false) {
+                            if (continuation.isActive) {
+                                continuation.resumeWithException(IOException("Empty response body for list"))
+                            }
+                            return
+                        }
+                        try {
+                            val rootObject = JSONObject(responseBody)
+                            count = rootObject.getInt("count")
+                            next = rootObject.optString("next")
+                            previous = rootObject.optString("previous")
+                            resultsArray = rootObject.getJSONArray("results")
+
+                            for (i in 0 until resultsArray.length()) {
+                                val pokemonJson = resultsArray.getJSONObject(i)
+                                val name = pokemonJson.getString("name")
+                                val url = pokemonJson.getString("url")
+                                val pokemon = Pokemon(
+                                    id = "",
+                                    name = name,
+                                    url = url,
+                                    img = "",
+                                    types = emptyList(),
+                                    height = "",
+                                    weight = "",
+                                    abilities = emptyList(),
+                                    stats = emptyList(),
+                                    moves = emptyList(),
+                                    species = "",
+                                )
+                                pokemonList.add(pokemon)
+                            }
+                            mapPokemonList(pokemonList)
+                            val pokemonListResponse = PokemonListResponse(
+                                count = count,
+                                next = next,
+                                previous = previous,
+                                results = pokemonList
+                            )
+                            // --- End Basic JSON Parsing ---
+                            continuation.resume(pokemonListResponse, null)
+
+                        } catch (e: Exception) {
+                            continuation.resumeWithException(RuntimeException("JSON Parsing Error (list): ${e.localizedMessage}", e))
+                        }
+
+                    }
+                }
+            })
+        }
     }
 
-    fun mapPokemonListResponse(pokemonList: List<Pokemon>): List<Pokemon> {
+    fun mapPokemonList(pokemonList: List<Pokemon>): List<Pokemon> {
         if(pokemonList.isNotEmpty()){
             pokemonList.map { pokemon ->
                 val urlBuilder = pokemon.url.toHttpUrlOrNull()?.newBuilder()
@@ -223,207 +234,184 @@ class OkHttpApiService(private val client: OkHttpClient): PokemonApiService, Mov
         return pokemonList
     }
 
-    override fun getMoveList(limit: Int, offset: Int, callback: MoveApiCallBack<MoveListResponse>) {
-        val urlBuilder = BASE_MOVE_URL.toHttpUrlOrNull()?.newBuilder()
-            ?: run {
-                callback.onError("Invalid base URL")
-                return
-            }
-        urlBuilder.addQueryParameter("limit", limit.toString())
-        urlBuilder.addQueryParameter("offset", offset.toString())
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override suspend fun getMoveList(limit: Int, offset: Int) : MoveListResponse {
+        return suspendCancellableCoroutine { continuation ->
+            val urlBuilder = (BASE_URL+VERSION+"move").toHttpUrlOrNull()?.newBuilder()
+                ?: run {
+                    if (continuation.isActive) continuation.resumeWithException(IllegalArgumentException("Invalid base URL for list"))
+                    return@suspendCancellableCoroutine
+                }
+            urlBuilder.addQueryParameter("limit", limit.toString())
+            urlBuilder.addQueryParameter("offset", offset.toString())
 
-        val url =  urlBuilder.build().toString()
-        val request = Request.Builder().url(url).get().build()
+            val url =  urlBuilder.build().toString()
+            val request = Request.Builder().url(url).get().build()
+            val call = client.newCall(request)
 
-        client.newCall(request).enqueue(object: Callback{
-            override fun onFailure(call: Call, e: IOException) {
-                callback.onError(e.localizedMessage ?: "Network request failed")
-            }
+            continuation.invokeOnCancellation { call.cancel() }
 
-            override fun onResponse(call: Call, response: Response) {
-                response.use {
-                    if (!response.isSuccessful) {
-                        callback.onError("API Error: ${response.code} - ${response.message}")
-                        return
+            call.enqueue(object: Callback{
+                override fun onFailure(call: Call, e: IOException) {
+                    if (continuation.isActive) continuation.resumeWithException(e)
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    if (!continuation.isActive) {
+                        response.close(); return
                     }
-                    val responseBody = response.body.string()
-                    if (false) {
-                        callback.onError("Empty response body")
-                        return
-                    }
-                    try {
-                        val moveList = mutableListOf<MoveDetail>()
-                        val rootObject = JSONObject(responseBody)
-                        var count = rootObject.getInt("count")
-                        var next = rootObject.optString("next")
-                        var previous = rootObject.optString("previous")
-                        var resultsArray = rootObject.getJSONArray("results")
+                    response.use {
+                        if (!response.isSuccessful) {
+                            if (continuation.isActive) {
+                                continuation.resumeWithException(IOException("API Error (list): ${it.code} - ${it.message}"))
+                            }
+                            return
+                        }
+                        val responseBody = response.body.string()
+                        if (responseBody.isEmpty()) {
+                            if (continuation.isActive) {
+                                continuation.resumeWithException(IOException("Empty response body for list"))
+                            }
+                            return
+                        }
+                        try {
+                            val moveList = mutableListOf<MoveDetail>()
+                            val rootObject = JSONObject(responseBody)
+                            var count = rootObject.getInt("count")
+                            var next = rootObject.optString("next")
+                            var previous = rootObject.optString("previous")
+                            var resultsArray = rootObject.getJSONArray("results")
 
-                        if (resultsArray.length() == 0) {
+                            if (resultsArray.length() == 0) {
+                                val moveListResponse = MoveListResponse(
+                                    count = count,
+                                    next = next,
+                                    previous = previous,
+                                    results = moveList // empty list
+                                )
+                                continuation.resume(moveListResponse, null)
+                                return
+                            }
+
+                            for (i in 0 until resultsArray.length()) {
+                                val moveJson = resultsArray.getJSONObject(i)
+                                val name = moveJson.getString("name")
+                                val url = moveJson.getString("url")
+                                var moveDetail = MoveDetail(
+                                    accuracy = 0,
+                                    contestType = ContestType("", ""),
+                                    damageClass = "",
+                                    effectEntries = emptyList(),
+                                    flavorTextEntries = emptyList(),
+                                    generation = "",
+                                    id = "",
+                                    learnedByPokemon = mutableListOf(),
+                                    name = name,
+                                    pp = 0,
+                                    power = 0,
+                                    priority = 0,
+                                    superContestEffect = "",
+                                    target = "",
+                                    type = Type("", ""),
+                                    url = url
+                                )
+                                moveList.add(moveDetail)
+                            }
+                            mapMoveListResponse(moveList)
                             val moveListResponse = MoveListResponse(
                                 count = count,
                                 next = next,
                                 previous = previous,
-                                results = moveList // empty list
+                                results = moveList
                             )
-                            callback.onSuccess(moveListResponse)
-                            return
+                            // --- End Basic JSON Parsing ---
+                            continuation.resume(moveListResponse, null)
+
+                        } catch (e: Exception) {
+                            continuation.resumeWithException(RuntimeException("JSON Parsing Error (list): ${e.localizedMessage}", e))
                         }
-
-                        for (i in 0 until resultsArray.length()) {
-                            val moveJson = resultsArray.getJSONObject(i)
-                            val name = moveJson.getString("name")
-                            val url = moveJson.getString("url")
-                            var moveDetail = MoveDetail(
-                                accuracy = 0,
-                                contestType = ContestType("", ""),
-                                damageClass = "",
-                                effectEntries = emptyList(),
-                                flavorTextEntries = emptyList(),
-                                generation = "",
-                                id = "",
-                                learnedByPokemon = mutableListOf(),
-                                name = name,
-                                pp = 0,
-                                power = 0,
-                                priority = 0,
-                                superContestEffect = "",
-                                target = "",
-                                type = Type("", ""),
-                                url = url
-                            )
-                            moveList.add(moveDetail)
-                        }
-                        mapMoveListResponse(moveList, count, next, previous, callback)
-                        val moveListResponse = MoveListResponse(
-                            count = count,
-                            next = next,
-                            previous = previous,
-                            results = moveList
-                        )
-                        // --- End Basic JSON Parsing ---
-
-                        callback.onSuccess(moveListResponse)
-
-                    } catch (e: Exception) {
-                        callback.onError("Error parsing response: ${e.localizedMessage}")
                     }
-
                 }
-            }
-        })
+            })
+        }
     }
 
-    private fun mapMoveListResponse(
-        moveList: MutableList<MoveDetail>,
-        overallCount: Int,
-        overallNext: String?,
-        overallPrevious: String?,
-        finalCallback: MoveApiCallBack<MoveListResponse>
-    ) {
-        if (moveList.isEmpty()) { // Should have been handled before, but good check
-            finalCallback.onSuccess(MoveListResponse(overallCount,
-                overallNext.toString(), overallPrevious.toString(), moveList))
-            return
-        }
+    private fun mapMoveListResponse(moveList: List<MoveDetail>) : List<MoveDetail> {
+        if(moveList.isNotEmpty()){
+            moveList.map { move ->
+                val detailUrlBuilder = move.url.toHttpUrlOrNull()?.newBuilder()
+                val url = detailUrlBuilder?.build().toString()
+                val request = Request.Builder().url(url).get().build()
+                val call = client.newCall(request)
 
-        val detailRequestsToMake = moveList.size
-        val successfulDetailedMoves = mutableListOf<MoveDetail>() // Collect successfully detailed moves
-        val failedRequests = mutableListOf<String>() // Collect names of failed requests
-
-        // Use java.util.concurrent.atomic.AtomicInteger for thread-safe counting
-        val completedRequestsCounter = java.util.concurrent.atomic.AtomicInteger(0)
-
-        for (move in moveList) {
-            val detailUrlBuilder = move.url.toHttpUrlOrNull()?.newBuilder()
-            if (detailUrlBuilder == null) {
-                failedRequests.add("${move.name} (Invalid URL)")
-                if (completedRequestsCounter.incrementAndGet() == detailRequestsToMake) {
-                    if (failedRequests.size == detailRequestsToMake) {
-                        finalCallback.onError("Failed to fetch details for all moves. First error: ${failedRequests.firstOrNull()}")
-                    } else {
-                        val response = MoveListResponse(overallCount, overallNext.toString(), overallPrevious.toString(), moveList)
-                        finalCallback.onSuccess(response)
+                call.enqueue(object : Callback {
+                    override fun onFailure(call: Call, e: IOException) {
+                        print(e.localizedMessage ?: "Network request failed")
                     }
-                }
-                continue
-            }
 
-            val detailRequestUrl = detailUrlBuilder.build().toString()
-            val detailRequest = Request.Builder().url(detailRequestUrl).get().build()
+                    override fun onResponse(call: Call, response: Response) {
+                        response.use {
+                            if (!response.isSuccessful) {
+                                print("API Error: ${response.code} - ${response.message}")
+                                return
+                            }
+                            val responseBody = response.body.string()
+                            if (false) {
+                                print("Empty response body")
+                                return
+                            }
 
-            client.newCall(detailRequest).enqueue(object : Callback {
-                override fun onFailure(call: Call, e: IOException) {
-                    failedRequests.add("${move.name} (${e.localizedMessage ?: "Network error"})")
-                    // Check if all requests are done
-                    if (completedRequestsCounter.incrementAndGet() == detailRequestsToMake) {
-                        if (failedRequests.size == detailRequestsToMake && successfulDetailedMoves.isEmpty()) {
-                            finalCallback.onError("Failed to fetch details for all moves. Last error: ${failedRequests.lastOrNull()}")
-                        } else {
-                            finalCallback.onSuccess(MoveListResponse(overallCount, overallNext.toString(), overallPrevious.toString(), moveList))
-                        }
-                    }
-                }
-
-                override fun onResponse(call: Call, response: Response) {
-                    response.use {
-                        if (!response.isSuccessful) {
-                            failedRequests.add("${move.name} (API Error: ${response.code})")
-                        } else {
-                            val detailResponseBody = response.body.string()
-                            if (detailResponseBody.isEmpty()) {
-                                failedRequests.add("${move.name} (Empty detail response)")
-                            } else {
-                                try {
-                                    val rootObject = JSONObject(detailResponseBody)
-                                    move.id = rootObject.optString("id")
-                                    move.pp = rootObject.optInt("pp")
-                                    move.power = rootObject.optInt("power")
-                                    move.priority = rootObject.optInt("priority")
-                                    move.target = rootObject.optJSONObject("target")?.optString("name") ?: ""
-                                    move.type = Type(
-                                        name = rootObject.optJSONObject("type")?.optString("name") ?: "",
-                                        url = rootObject.optJSONObject("type")?.optString("url") ?: ""
+                            try {
+                                val rootObject = JSONObject(responseBody)
+                                move.id = rootObject.optString("id")
+                                move.pp = rootObject.optInt("pp")
+                                move.power = rootObject.optInt("power")
+                                move.priority = rootObject.optInt("priority")
+                                move.target = rootObject.optJSONObject("target")?.optString("name") ?: ""
+                                move.type = Type(
+                                    name = rootObject.optJSONObject("type")?.optString("name") ?: "",
+                                    url = rootObject.optJSONObject("type")?.optString("url") ?: ""
+                                )
+                                move.accuracy = rootObject.optInt("accuracy")
+                                move.contestType = ContestType(
+                                    rootObject.optJSONObject("contest_type")?.optString("name") ?: "",
+                                    rootObject.optJSONObject("contest_type")?.optString("url") ?: ""
+                                )
+                                move.damageClass = rootObject.optJSONObject("damage_class")?.optString("name") ?: ""
+                                var effectEntries = rootObject.getJSONArray("effect_entries")
+                                var effectEntryList = mutableListOf<EffectEntry>()
+                                for (i in 0 until effectEntries.length()) {
+                                    var effectEntry = EffectEntry(
+                                        effect = effectEntries.getJSONObject(i).optString("effect"),
+                                        shortEffect = effectEntries.getJSONObject(i).optString("short_effect")
                                     )
-                                    move.accuracy = rootObject.optInt("accuracy")
-                                    move.contestType = ContestType(
-                                        rootObject.optJSONObject("contest_type")?.optString("name") ?: "",
-                                        rootObject.optJSONObject("contest_type")?.optString("url") ?: ""
+                                    effectEntryList.add(effectEntry)
+                                }
+                                move.effectEntries = effectEntryList
+
+                                val flavorTextEntries = rootObject.getJSONArray("flavor_text_entries")
+                                val flavorTextEntryList = mutableListOf<FlavorTextEntry>()
+                                for (i in 0 until flavorTextEntries.length()) {
+                                    var flavorTextEntry = FlavorTextEntry(
+                                        flavorText = flavorTextEntries.getJSONObject(i).optString("flavor_text"),
+                                        language = flavorTextEntries.getJSONObject(i).optJSONObject("language").optString("name"),
+                                        versionGroup = VersionGroupDetail(
+                                            name = flavorTextEntries.getJSONObject(i).optJSONObject("version_group").optString("name"),
+                                            url = flavorTextEntries.getJSONObject(i).optJSONObject("version_group").optString("url")
+                                        )
                                     )
-                                    move.damageClass = rootObject.optJSONObject("damage_class")?.optString("name") ?: ""
-                                    var effectEntries = rootObject.getJSONArray("effect_entries")
-                                    var effectEntryList = mutableListOf<EffectEntry>()
-                                    for (i in 0 until effectEntries.length()){
-                                        var effectEntry = EffectEntry(
-                                            effect = effectEntries.getJSONObject(i).optString("effect"),
-                                            shortEffect = effectEntries.getJSONObject(i).optString("short_effect")
-                                        )
-                                        effectEntryList.add(effectEntry)
-                                    }
-                                    move.effectEntries = effectEntryList
+                                    flavorTextEntryList.add(flavorTextEntry)
+                                }
+                                move.flavorTextEntries = flavorTextEntryList
+                                move.generation = rootObject.optJSONObject("generation")?.optString("name") ?: ""
 
-                                    val flavorTextEntries = rootObject.getJSONArray("flavor_text_entries")
-                                    val flavorTextEntryList = mutableListOf<FlavorTextEntry>()
-                                    for (i in 0 until flavorTextEntries.length()){
-                                        var flavorTextEntry = FlavorTextEntry(
-                                            flavorText = flavorTextEntries.getJSONObject(i).optString("flavor_text"),
-                                            language = flavorTextEntries.getJSONObject(i).optJSONObject("language").optString("name"),
-                                            versionGroup = VersionGroupDetail(
-                                                name = flavorTextEntries.getJSONObject(i).optJSONObject("version_group").optString("name"),
-                                                url = flavorTextEntries.getJSONObject(i).optJSONObject("version_group").optString("url")
-                                            )
-                                        )
-                                        flavorTextEntryList.add(flavorTextEntry)
-                                    }
-                                    move.flavorTextEntries = flavorTextEntryList
-                                    move.generation = rootObject.optJSONObject("generation")?.optString("name") ?: ""
-
-                                    val learnedByArray = rootObject.optJSONArray("learned_by_pokemon")
-                                    val tempLearnedBy = mutableListOf<Pokemon>()
-                                    for (i in 0 until learnedByArray.length()) {
-                                        val pokemonJson = learnedByArray.getJSONObject(i)
-                                        if (pokemonJson != null) {
-                                            tempLearnedBy.add(Pokemon(
+                                val learnedByArray = rootObject.optJSONArray("learned_by_pokemon")
+                                val tempLearnedBy = mutableListOf<Pokemon>()
+                                for (i in 0 until learnedByArray.length()) {
+                                    val pokemonJson = learnedByArray.getJSONObject(i)
+                                    if (pokemonJson != null) {
+                                        tempLearnedBy.add(
+                                            Pokemon(
                                                 id = "", // You might not get ID here
                                                 name = pokemonJson.optString("name"),
                                                 url = pokemonJson.optString("url"),
@@ -435,108 +423,113 @@ class OkHttpApiService(private val client: OkHttpClient): PokemonApiService, Mov
                                                 stats = emptyList(),
                                                 moves = emptyList(),
                                                 species = ""
-                                            ))
-                                        }
+                                            )
+                                        )
                                     }
-                                    move.learnedByPokemon = tempLearnedBy
-
-                                    successfulDetailedMoves.add(move)
-                                } catch (e: Exception) {
-                                    failedRequests.add("${move.name} (Parsing detail error: ${e.localizedMessage})")
                                 }
+                                move.learnedByPokemon = tempLearnedBy
+                            } catch (e: Exception) {
+                                print("Error parsing response: ${e.localizedMessage}")
                             }
                         }
                     }
-                    // Check if all requests are done
-                    if (completedRequestsCounter.incrementAndGet() == detailRequestsToMake) {
-                        if (failedRequests.isNotEmpty() && successfulDetailedMoves.isEmpty()) {
-                            finalCallback.onError("Failed to fetch details for any move. Last error: ${failedRequests.lastOrNull()}")
-                        } else {
-                            finalCallback.onSuccess(MoveListResponse(overallCount, overallNext.toString(), overallPrevious.toString(), moveList))
+                })
+            }
+        }
+        return moveList
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override suspend fun getGenerationList(limit: Int, offset: Int):GenerationListResponse {
+        return suspendCancellableCoroutine { continuation ->
+            val urlBuilder = (BASE_URL+VERSION+"generation").toHttpUrlOrNull()?.newBuilder()
+                ?: run {
+                    if(continuation.isActive){
+                        continuation.resumeWithException(IllegalArgumentException("Invalid base URL for list"))
+                    }
+                    return@suspendCancellableCoroutine
+                }
+            urlBuilder.addQueryParameter("limit", limit.toString())
+            urlBuilder.addQueryParameter("offset", offset.toString())
+
+            val url =  urlBuilder.build().toString()
+            val request = Request.Builder().url(url).get().build()
+            val call = client.newCall(request)
+
+            continuation.invokeOnCancellation { call.cancel() }
+
+            val generationList = mutableListOf< GenerationDetail>()
+            var count = 0
+            var next = "" // optString returns null if key not found or value is null
+            var previous = ""
+            var resultsArray: JSONArray
+            call.enqueue(object: Callback{
+                override fun onFailure(call: Call, e: IOException) {
+                    if (continuation.isActive) continuation.resumeWithException(e)
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    if (!continuation.isActive) {
+                        response.close(); return
+                    }
+                    response.use {
+                        if (!response.isSuccessful) {
+                            if (continuation.isActive) {
+                                continuation.resumeWithException(IOException("API Error (list): ${it.code} - ${it.message}"))
+                            }
+                            return
                         }
+                        val responseBody = response.body.string()
+                        if (responseBody.isEmpty()) {
+                            if (continuation.isActive) {
+                                continuation.resumeWithException(IOException("Empty response body for list"))
+                            }
+                            return
+                        }
+                        try {
+                            val rootObject = JSONObject(responseBody)
+                            count = rootObject.getInt("count")
+                            next = rootObject.optString("next")
+                            previous = rootObject.optString("previous")
+                            resultsArray = rootObject.getJSONArray("results")
+
+                            for (i in 0 until resultsArray.length()) {
+                                val generationJson = resultsArray.getJSONObject(i)
+                                val name = generationJson.getString("name")
+                                val url = generationJson.getString("url")
+                                val generationDetail = GenerationDetail(
+                                    id = "",
+                                    name = name,
+                                    url = url,
+                                    mainRegion = RegionBaseDetail("", ""),
+                                    moves = emptyList(),
+                                    pokemonSpecies = emptyList(),
+                                    versionGroups = emptyList(),
+                                    types = emptyList()
+                                )
+                                generationList.add(generationDetail)
+                            }
+                            mapGenerationList(generationList)
+                            val generationListResponse = GenerationListResponse(
+                                count = count,
+                                next = next,
+                                previous = previous,
+                                results = generationList
+                            )
+                            // --- End Basic JSON Parsing ---
+                            continuation.resume(generationListResponse, null)
+
+                        } catch (e: Exception) {
+                            continuation.resumeWithException(RuntimeException("JSON Parsing Error (list): ${e.localizedMessage}", e))
+                        }
+
                     }
                 }
             })
         }
     }
 
-    override fun getGenerationList(limit: Int, offset: Int, callback: GenerationApiCallBack<GenerationListResponse>) {
-        val urlBuilder = BASE_GENERATION_URL.toHttpUrlOrNull()?.newBuilder()
-            ?: run {
-                callback.onError("Invalid base URL")
-                return
-            }
-        urlBuilder.addQueryParameter("limit", limit.toString())
-        urlBuilder.addQueryParameter("offset", offset.toString())
-
-        val url =  urlBuilder.build().toString()
-        val request = Request.Builder().url(url).get().build()
-
-        val generationList = mutableListOf< GenerationDetail>()
-        var count = 0
-        var next = "" // optString returns null if key not found or value is null
-        var previous = ""
-        var resultsArray: JSONArray
-        client.newCall(request).enqueue(object: Callback{
-            override fun onFailure(call: Call, e: IOException) {
-                callback.onError(e.localizedMessage ?: "Network request failed")
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                response.use {
-                    if (!response.isSuccessful) {
-                        callback.onError("API Error: ${response.code} - ${response.message}")
-                        return
-                    }
-                    val responseBody = response.body.string()
-                    if (false) {
-                        callback.onError("Empty response body")
-                        return
-                    }
-                    try {
-                        val rootObject = JSONObject(responseBody)
-                        count = rootObject.getInt("count")
-                        next = rootObject.optString("next")
-                        previous = rootObject.optString("previous")
-                        resultsArray = rootObject.getJSONArray("results")
-
-                        for (i in 0 until resultsArray.length()) {
-                            val generationJson = resultsArray.getJSONObject(i)
-                            val name = generationJson.getString("name")
-                            val url = generationJson.getString("url")
-                            val generationDetail = GenerationDetail(
-                                id = "",
-                                name = name,
-                                url = url,
-                                mainRegion = RegionBaseDetail("", ""),
-                                moves = emptyList(),
-                                pokemonSpecies = emptyList(),
-                                versionGroups = emptyList(),
-                                types = emptyList()
-                            )
-                            generationList.add(generationDetail)
-                        }
-                        mapGenerationListResponse(generationList)
-                        val generationListResponse = GenerationListResponse(
-                            count = count,
-                            next = next,
-                            previous = previous,
-                            results = generationList
-                        )
-                        // --- End Basic JSON Parsing ---
-
-                        callback.onSuccess(generationListResponse)
-
-                    } catch (e: Exception) {
-                        callback.onError("Error parsing response: ${e.localizedMessage}")
-                    }
-
-                }
-            }
-        })
-    }
-
-    fun mapGenerationListResponse(generationList: List<GenerationDetail>): List<GenerationDetail> {
+    fun mapGenerationList(generationList: List<GenerationDetail>): List<GenerationDetail> {
         if(generationList.isNotEmpty()){
             generationList.map { generation ->
                 val urlBuilder = generation.url.toHttpUrlOrNull()?.newBuilder()
@@ -621,82 +614,95 @@ class OkHttpApiService(private val client: OkHttpClient): PokemonApiService, Mov
         return generationList
     }
 
-    override fun getTypeList(limit: Int, offset: Int, callback: TypeApiCallBack<TypeListResponse>) {
-        val urlBuilder = BASE_TYPE_URL.toHttpUrlOrNull()?.newBuilder()
-        ?: run {
-            callback.onError("Invalid base URL")
-            return
-        }
-        urlBuilder.addQueryParameter("limit", limit.toString())
-        urlBuilder.addQueryParameter("offset", offset.toString())
-
-        val url =  urlBuilder.build().toString()
-        val request = Request.Builder().url(url).get().build()
-
-        client.newCall(request).enqueue(object: Callback{
-            override fun onFailure(call: Call, e: IOException) {
-                callback.onError(e.localizedMessage ?: "Network request failed")
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                response.use {
-                    if (!response.isSuccessful) {
-                        callback.onError("API Error: ${response.code} - ${response.message}")
-                        return
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override suspend fun getTypeList(limit: Int, offset: Int): TypeListResponse {
+        return suspendCancellableCoroutine { continuation ->
+            val urlBuilder = (BASE_URL+VERSION+"type").toHttpUrlOrNull()?.newBuilder()
+                ?: run {
+                    if(continuation.isActive){
+                        continuation.resumeWithException(IllegalArgumentException("Invalid base URL for list"))
                     }
-                    val responseBody = response.body.string()
-                    if (false) {
-                        callback.onError("Empty response body")
-                        return
-                    }
-                    try {
-                        val typeList = mutableListOf<TypeDetail>()
-
-                        // --- Basic JSON Parsing (Replace with Moshi/Gson/Kotlinx.Serialization in real app) ---
-                        val rootObject = JSONObject(responseBody)
-                        val count = rootObject.getInt("count")
-                        val next = rootObject.optString("next") // optString returns null if key not found or value is null
-                        val previous = rootObject.optString("previous")
-                        val resultsArray = rootObject.getJSONArray("results")
-
-                        for (i in 0 until resultsArray.length()) {
-                            val typeJson = resultsArray.getJSONObject(i)
-                            val name = typeJson.getString("name")
-                            val url = typeJson.getString("url")
-                            val typeDetail = TypeDetail(
-                                id = "",
-                                name = name,
-                                url = url,
-                                pokemon = emptyList(),
-                                moves = emptyList(),
-                                doubleDamageFrom = emptyList(),
-                                doubleDamageTo = emptyList(),
-                                halfDamageFrom = emptyList(),
-                                halfDamageTo = emptyList(),
-                                noDamageFrom = emptyList(),
-                                noDamageTo = emptyList(),
-                                generation = ""
-                            )
-                            typeList.add(typeDetail)
-                        }
-                        mapTypeListResponse(typeList)
-                        val typeListResponse = TypeListResponse(
-                            count = count,
-                            next = next,
-                            previous = previous,
-                            results = typeList
-                        )
-                        // --- End Basic JSON Parsing ---
-
-                        callback.onSuccess(typeListResponse)
-
-                    } catch (e: Exception) {
-                        callback.onError("Error parsing response: ${e.localizedMessage}")
-                    }
-
+                    return@suspendCancellableCoroutine
                 }
-            }
-        })
+            urlBuilder.addQueryParameter("limit", limit.toString())
+            urlBuilder.addQueryParameter("offset", offset.toString())
+
+            val url =  urlBuilder.build().toString()
+            val request = Request.Builder().url(url).get().build()
+            val call = client.newCall(request)
+
+            call.enqueue(object: Callback{
+                override fun onFailure(call: Call, e: IOException) {
+                    if (continuation.isActive) continuation.resumeWithException(e)
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    if (!continuation.isActive) {
+                        response.close(); return
+                    }
+                    response.use {
+                        if (!response.isSuccessful) {
+                            if (continuation.isActive) {
+                                continuation.resumeWithException(IOException("API Error (list): ${it.code} - ${it.message}"))
+                            }
+                            return
+                        }
+                        val responseBody = response.body.string()
+                        if (false) {
+                            if (continuation.isActive) {
+                                continuation.resumeWithException(IOException("Empty response body for list"))
+                            }
+                            return
+                        }
+                        try {
+                            val typeList = mutableListOf<TypeDetail>()
+
+                            // --- Basic JSON Parsing (Replace with Moshi/Gson/Kotlinx.Serialization in real app) ---
+                            val rootObject = JSONObject(responseBody)
+                            val count = rootObject.getInt("count")
+                            val next = rootObject.optString("next") // optString returns null if key not found or value is null
+                            val previous = rootObject.optString("previous")
+                            val resultsArray = rootObject.getJSONArray("results")
+
+                            for (i in 0 until resultsArray.length()) {
+                                val typeJson = resultsArray.getJSONObject(i)
+                                val name = typeJson.getString("name")
+                                val url = typeJson.getString("url")
+                                val typeDetail = TypeDetail(
+                                    id = "",
+                                    name = name,
+                                    url = url,
+                                    pokemon = emptyList(),
+                                    moves = emptyList(),
+                                    doubleDamageFrom = emptyList(),
+                                    doubleDamageTo = emptyList(),
+                                    halfDamageFrom = emptyList(),
+                                    halfDamageTo = emptyList(),
+                                    noDamageFrom = emptyList(),
+                                    noDamageTo = emptyList(),
+                                    generation = ""
+                                )
+                                typeList.add(typeDetail)
+                            }
+                            mapTypeListResponse(typeList)
+                            val typeListResponse = TypeListResponse(
+                                count = count,
+                                next = next,
+                                previous = previous,
+                                results = typeList
+                            )
+                            // --- End Basic JSON Parsing ---
+
+                            continuation.resume(typeListResponse, null)
+
+                        } catch (e: Exception) {
+                            continuation.resumeWithException(RuntimeException("JSON Parsing Error (list): ${e.localizedMessage}", e))
+                        }
+
+                    }
+                }
+            })
+        }
     }
 
     fun mapTypeListResponse(typeList: List<TypeDetail>): List<TypeDetail> {

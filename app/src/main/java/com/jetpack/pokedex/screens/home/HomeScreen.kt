@@ -1,6 +1,6 @@
 @file:Suppress("KotlinConstantConditions", "DEPRECATION")
 
-package com.jetpack.pokedex.pages.home
+package com.jetpack.pokedex.screens.home
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -103,7 +103,7 @@ fun HomeScreen(
                     isLoadingMore = isLoading && pokemonList.isEmpty(), // Show loader at bottom only if loading more
                     canLoadMore = canLoadMore,
                     onLoadMore = {
-                        viewModel.fetchPokemon(loadMore = true)
+                        viewModel.fetchPokemon()
                     },
                     navController = navController
                 )
@@ -138,7 +138,6 @@ fun PokemonLazyList(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         modifier = Modifier
             .background(color = Color.White)
-            .padding(top = 110.dp, bottom = 100.dp),
     ) {
         items(
             pokemonList,

@@ -1,23 +1,19 @@
 package com.jetpack.pokedex.data.repository
 
+import com.jetpack.pokedex.data.model.TypeDetail
 import com.jetpack.pokedex.data.model.TypeListResponse
-import com.jetpack.pokedex.data.source.TypeApiCallBack
 import com.jetpack.pokedex.data.source.TypeApiService
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 interface ITypeRepository {
-    fun getTypeList(
-        limit: Int,
-        offset: Int,
-        callback: TypeApiCallBack<TypeListResponse>
-    )
+    suspend fun fetchTypeList(limit: Int, offset: Int) : TypeListResponse
 }
 
 class TypeRepository(private val apiService: TypeApiService) : ITypeRepository {
-    override fun getTypeList(
-        limit: Int,
-        offset: Int,
-        callback: TypeApiCallBack<TypeListResponse>
-    ) {
-        apiService.getTypeList(limit, offset, callback)
+    override suspend fun fetchTypeList(limit: Int, offset: Int): TypeListResponse {
+        return withContext(Dispatchers.IO) {
+            apiService.getTypeList(limit, offset)
+        }
     }
 }

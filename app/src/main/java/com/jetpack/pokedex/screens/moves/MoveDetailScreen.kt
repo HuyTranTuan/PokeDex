@@ -1,4 +1,4 @@
-package com.jetpack.pokedex.pages.moves
+package com.jetpack.pokedex.screens.moves
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -46,8 +46,8 @@ import androidx.navigation.NavController
 import com.jetpack.pokedex.AppDestinations
 import com.jetpack.pokedex.data.model.MoveDetail
 import com.jetpack.pokedex.data.model.Pokemon
-import com.jetpack.pokedex.pages.home.PokemonListItemView
-import com.jetpack.pokedex.pages.home.getTypeColor
+import com.jetpack.pokedex.screens.home.PokemonListItemView
+import com.jetpack.pokedex.screens.home.getTypeColor
 import com.jetpack.pokedex.sidecomponents.BackwardButton
 import com.jetpack.pokedex.sidecomponents.ScrollToTopButton
 import com.jetpack.pokedex.viewmodel.move.MoveViewModel
@@ -94,7 +94,7 @@ fun MoveDetailScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 110.dp, bottom = 95.dp, start = 16.dp, end = 16.dp),
+                .padding(start = 16.dp, end = 16.dp),
             state = lazyListState,
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)

@@ -2,9 +2,9 @@ package com.jetpack.pokedex.data.model
 
 data class MoveDetail(
     var id: String,
-    val url: String,
+    override val url: String,
+    override val name: String,
     var type: Type,
-    val name: String,
     var accuracy: Int,
     var power: Int,
     var target: String,
@@ -17,37 +17,13 @@ data class MoveDetail(
     var learnedByPokemon: MutableList<Pokemon>,
     var priority: Int,
     var superContestEffect: String,
-)
+): BaseObjectDetail(name, url)
 
 data class MoveListResponse(
-    val count: Int,
-    val next: String,
-    val previous: String,
+    override val count: Int,
+    override val next: String,
+    override val previous: String,
     val results: List<MoveDetail>
-)
+) : BaseObjectListResponse(count, next, previous)
 
-data class EffectEntry(
-    val effect: String,
-    val shortEffect: String
-)
 
-data class FlavorTextEntry(
-    val flavorText: String,
-    val language: String,
-    val versionGroup: VersionGroupDetail
-)
-
-data class VersionGroupDetail(
-    val name: String,
-    val url: String
-)
-
-data class Type(
-    val name: String,
-    val url: String
-)
-
-data class ContestType(
-    val name: String,
-    val url: String
-)
